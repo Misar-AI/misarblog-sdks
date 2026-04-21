@@ -1,0 +1,25 @@
+name: Publish Python SDK
+on:
+  push:
+    tags: ['python/v*']
+  workflow_dispatch:
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install build
+      - run: python -m build
+        working-directory: python
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist/
+          # OIDC trusted publisher — configure on PyPI dashboard.
+          # Fallback token: set PYPI_API_TOKEN secret and uncomment:
+          # password: ${{ secrets.PYPI_API_TOKEN }}

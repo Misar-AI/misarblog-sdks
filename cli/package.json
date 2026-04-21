@@ -1,0 +1,12 @@
+{
+  "name": "@misarblog/cli",
+  "version": "0.1.0",
+  "description": "MisarBlog CLI",
+  "type": "module",
+  "bin": {
+    "misarblog": "./bin/misarblog.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,20 @@
+name: Validate & Tag Go SDK
+on:
+  push:
+    tags: ['go/v*']
+  workflow_dispatch:
+# Go modules are served directly from GitHub — pkg.go.dev auto-indexes on git tag.
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      - run: go build ./...
+        working-directory: go
+      - run: go vet ./...
+        working-directory: go
+      - run: go test ./...
+        working-directory: go

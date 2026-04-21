@@ -1,0 +1,14 @@
+name: misarblog_flutter
+description: MisarBlog embed widget for Flutter
+version: 0.1.0
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  webview_flutter: ^4.0.0
+  misarblog_sdk:
+    path: ../dart

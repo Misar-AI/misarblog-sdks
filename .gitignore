@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+target/
+*.gem
+*.nupkg
+*.a
+*.so
+*.dylib
+.gradle/
+bin/
+*.class
+vendor/

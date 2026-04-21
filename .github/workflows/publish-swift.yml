@@ -1,0 +1,17 @@
+name: Validate & Tag Swift SDK
+on:
+  push:
+    tags: ['swift/v*']
+  workflow_dispatch:
+# SPM resolves directly from GitHub tags — the tag itself is the "publish".
+# Add the package in consumer projects:
+#   .package(url: "https://github.com/Misar-AI/misarblog-sdks", from: "0.1.0")
+jobs:
+  validate:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift build
+        working-directory: swift
+      - run: swift test
+        working-directory: swift

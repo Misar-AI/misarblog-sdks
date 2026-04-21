@@ -1,0 +1,24 @@
+name: Publish C# SDK
+on:
+  push:
+    tags: ['csharp/v*']
+  workflow_dispatch:
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Extract version from tag
+        id: ver
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          echo "VERSION=${TAG#csharp/v}" >> "$GITHUB_OUTPUT"
+      - run: dotnet pack -c Release -p:PackageVersion=${{ steps.ver.outputs.VERSION }} -o ./nupkg
+        working-directory: csharp
+      - run: dotnet nuget push "./nupkg/*.nupkg" --api-key "$NUGET_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        working-directory: csharp
+        env:
+          NUGET_KEY: ${{ secrets.NUGET_API_KEY }}

@@ -1,0 +1,41 @@
+name: Build & Release C SDK
+on:
+  push:
+    tags: ['c/v*']
+  workflow_dispatch:
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: libmisarblog-x86_64-linux
+          - os: macos-14
+            artifact: libmisarblog-aarch64-macos
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install libcurl (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y libcurl4-openssl-dev
+      - run: make
+        working-directory: c
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: c/libmisarblog.a
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: libmisarblog-*
+          merge-multiple: false
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: libmisarblog-**/*
+          generate_release_notes: true

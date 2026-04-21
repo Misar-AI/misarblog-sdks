@@ -1,0 +1,18 @@
+name: Publish PHP SDK (Packagist)
+on:
+  push:
+    tags: ['php/v*']
+  workflow_dispatch:
+# Packagist mirrors from GitHub via webhook. This triggers the update API.
+jobs:
+  notify-packagist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Packagist update
+        env:
+          PACKAGIST_TOKEN: ${{ secrets.PACKAGIST_API_TOKEN }}
+        run: |
+          curl -sSf -X POST \
+            -H "Content-Type: application/json" \
+            "https://packagist.org/api/update-package?username=misarblog&apiToken=${PACKAGIST_TOKEN}" \
+            -d '{"repository":{"url":"https://github.com/Misar-AI/misarblog-sdks"}}'
