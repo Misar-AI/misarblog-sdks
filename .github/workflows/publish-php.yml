@@ -11,8 +11,9 @@ jobs:
       - name: Trigger Packagist update
         env:
           PACKAGIST_TOKEN: ${{ secrets.PACKAGIST_API_TOKEN }}
+          PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
         run: |
           curl -sSf -X POST \
             -H "Content-Type: application/json" \
-            "https://packagist.org/api/update-package?username=misarblog&apiToken=${PACKAGIST_TOKEN}" \
+            "https://packagist.org/api/update-package?username=${PACKAGIST_USERNAME}&apiToken=${PACKAGIST_TOKEN}" \
             -d '{"repository":{"url":"https://github.com/Misar-AI/misarblog-sdks"}}'
