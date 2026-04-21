@@ -17,6 +17,8 @@ jobs:
           server-password: MAVEN_PASSWORD
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: GPG_PASSPHRASE
+      - run: mvn --no-transfer-progress --batch-mode test
+        working-directory: java
       - run: mvn --no-transfer-progress --batch-mode deploy -P release
         working-directory: java
         env:

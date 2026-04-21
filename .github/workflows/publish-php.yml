@@ -3,7 +3,7 @@ on:
   push:
     tags: ['php/v*']
   workflow_dispatch:
-# Packagist mirrors from GitHub via webhook. This triggers the update API.
+# Packagist mirrors from GitHub via webhook — this triggers the sync API.
 jobs:
   notify-packagist:
     runs-on: ubuntu-latest

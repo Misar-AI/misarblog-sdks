@@ -11,7 +11,11 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
-      - run: gem build misarblog.gemspec
+          bundler-cache: true
+          working-directory: ruby
+      - run: bundle exec rspec
+        working-directory: ruby
+      - run: gem build *.gemspec
         working-directory: ruby
       - run: gem push *.gem
         working-directory: ruby

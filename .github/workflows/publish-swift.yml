@@ -4,14 +4,13 @@ on:
     tags: ['swift/v*']
   workflow_dispatch:
 # SPM resolves directly from GitHub tags — the tag itself is the "publish".
-# Add the package in consumer projects:
-#   .package(url: "https://github.com/Misar-AI/misarblog-sdks", from: "0.1.0")
+# Consumers add: .package(url: "https://github.com/Misar-AI/<PRODUCT>-sdks", from: "0.1.0")
 jobs:
   validate:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - run: swift build
+      - run: swift build -c release
         working-directory: swift
       - run: swift test
         working-directory: swift

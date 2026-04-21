@@ -13,6 +13,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - uses: gradle/actions/setup-gradle@v3
+      - run: ./gradlew test
+        working-directory: kotlin
       - run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
         working-directory: kotlin
         env:
