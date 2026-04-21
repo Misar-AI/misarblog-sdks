@@ -1,0 +1,66 @@
+name: Auto-tag on SDK sync
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Tag changed SDKs
+        run: |
+          # Determine changed dirs (handle first-ever push gracefully)
+          if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            CHANGED=$(git ls-files --others --cached | head -1 && git diff --name-only HEAD~1 HEAD 2>/dev/null || git show --name-only --format="" HEAD)
+          else
+            CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} 2>/dev/null || git diff --name-only HEAD~1 HEAD)
+          fi
+          echo "Changed files: $CHANGED"
+
+          extract_version() {
+            local lang=$1
+            case $lang in
+              typescript|cli|solidity)
+                jq -r '.version // "0.1.0"' ${lang}/package.json 2>/dev/null || echo "0.1.0" ;;
+              python)
+                grep '^version' python/pyproject.toml 2>/dev/null | grep -oE '"[^"]+"' | tr -d '"' | head -1 || echo "0.1.0" ;;
+              rust)
+                grep '^version' rust/Cargo.toml 2>/dev/null | grep -oE '"[^"]+"' | tr -d '"' | head -1 || echo "0.1.0" ;;
+              ruby)
+                grep -h 's\.version\|spec\.version' ruby/*.gemspec 2>/dev/null | grep -oE '"[^"]+"' | tr -d '"' | head -1 || echo "0.1.0" ;;
+              java)
+                grep '<version>' java/pom.xml 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "0.1.0" ;;
+              kotlin)
+                grep '^version' kotlin/build.gradle.kts 2>/dev/null | grep -oE '"[^"]+"' | tr -d '"' | head -1 || echo "0.1.0" ;;
+              csharp)
+                grep '<Version>' csharp/*.csproj 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "0.1.0" ;;
+              dart|flutter)
+                grep '^version' ${lang}/pubspec.yaml 2>/dev/null | awk '{print $2}' | head -1 || echo "0.1.0" ;;
+              *)
+                cat ${lang}/VERSION 2>/dev/null | tr -d '[:space:]' || echo "0.1.0" ;;
+            esac
+          }
+
+          git config user.email "ci@misar.io"
+          git config user.name "Misar CI"
+
+          for lang in typescript python rust ruby java kotlin csharp dart flutter go php swift c cpp cli solidity; do
+            if echo "$CHANGED" | grep -qE "^${lang}/"; then
+              VERSION=$(extract_version $lang)
+              TAG="${lang}/v${VERSION}"
+              if git tag | grep -qx "$TAG"; then
+                echo "⏭  Tag $TAG already exists, skipping."
+              else
+                echo "🏷  Creating tag $TAG"
+                git tag "$TAG"
+                git push origin "$TAG"
+              fi
+            fi
+          done
