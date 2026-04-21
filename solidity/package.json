@@ -1,9 +1,0 @@
-{
-  "name": "@misarblog/solidity",
-  "version": "0.1.0",
-  "description": "MisarBlog on-chain content registry",
-  "devDependencies": {
-    "hardhat": "^2.19.0",
-    "@nomicfoundation/hardhat-toolbox": "^4.0.0"
-  }
-}
