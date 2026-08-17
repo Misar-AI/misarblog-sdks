@@ -1,8 +1,23 @@
 name: Auto-tag on SDK sync
 
+# Tagging IS releasing: each publish-<lang>.yml triggers on the tag this job
+# creates, so a tag pushed here goes straight to the registry.
+#
+# SAFETY GATE — the repository variable SDK_PUBLISH_TARGETS decides which
+# languages may be tagged, and therefore which may publish:
+#
+#   unset / empty   nothing is tagged; the job reports what it would have done
+#   python,rust     only those two
+#   all             every changed SDK
+#
+# It defaults to off because a sync that touches every SDK directory would
+# otherwise release every package at once, and a published version can never
+# be replaced. Enable one language, confirm it on the registry, then widen.
+
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   tag:
@@ -15,7 +30,16 @@ jobs:
           fetch-depth: 0
 
       - name: Tag changed SDKs
+        env:
+          TARGETS: ${{ vars.SDK_PUBLISH_TARGETS }}
         run: |
+          GATE=",$(echo "${TARGETS:-}" | tr -d '[:space:]'),"
+          if [ "$GATE" = ",," ]; then
+            echo "::notice::SDK_PUBLISH_TARGETS is unset — DRY RUN, nothing will be tagged or published."
+          else
+            echo "::notice::Tagging enabled for: ${TARGETS}"
+          fi
+
           # Determine changed dirs (handle first-ever push gracefully)
           if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
             CHANGED=$(git ls-files --others --cached | head -1 && git diff --name-only HEAD~1 HEAD 2>/dev/null || git show --name-only --format="" HEAD)
@@ -57,10 +81,14 @@ jobs:
               TAG="${lang}/v${VERSION}"
               if git tag | grep -qx "$TAG"; then
                 echo "⏭  Tag $TAG already exists, skipping."
+              elif ! echo "$GATE" | grep -q ",${lang}," && ! echo "$GATE" | grep -q ",all,"; then
+                echo "🔒 Would tag $TAG — skipped, ${lang} is not in SDK_PUBLISH_TARGETS."
+                echo "- \`$TAG\` withheld (gate)" >> "$GITHUB_STEP_SUMMARY"
               else
                 echo "🏷  Creating tag $TAG"
                 git tag "$TAG"
                 git push origin "$TAG"
+                echo "- \`$TAG\` tagged → publish-${lang}.yml will run" >> "$GITHUB_STEP_SUMMARY"
               fi
             fi
           done

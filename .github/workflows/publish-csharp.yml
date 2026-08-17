@@ -1,24 +1,68 @@
 name: Publish C# SDK
+
+# Publishes MisarBlog to NuGet via Trusted Publishing (OIDC) — no API key.
+#
+# The matching policy on nuget.org is:
+#   Package owner:      misar
+#   Publisher:          GitHubActions
+#   Repository owner:   Misar-AI       (#278048041)
+#   Repository:         misarblog-sdks (#1217255047)
+#   Workflow:           publish-csharp.yml
+#   Environment:        (none)
+#
+# Those five fields must keep matching or the token exchange is refused. In
+# particular: renaming this file, or adding an `environment:` key without
+# updating the policy, breaks publishing.
+
 on:
   push:
     tags: ['csharp/v*']
   workflow_dispatch:
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      # Required for the OIDC token NuGet exchanges for a short-lived API key.
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+
       - name: Extract version from tag
         id: ver
         run: echo "VERSION=${GITHUB_REF_NAME#csharp/v}" >> "$GITHUB_OUTPUT"
+
       - run: dotnet test
         working-directory: csharp
+
       - run: dotnet pack -c Release -p:PackageVersion=${{ steps.ver.outputs.VERSION }} -o ./nupkg
         working-directory: csharp
-      - run: dotnet nuget push "./nupkg/*.nupkg" --api-key "$NUGET_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      # Exchanges the workflow's OIDC token for a temporary NuGet API key and
+      # writes it to the environment for the push below. Nothing long-lived is
+      # stored in repository secrets.
+      - name: Authenticate to NuGet
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: misar
+
+      - name: Push
         working-directory: csharp
-        env:
-          NUGET_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push "./nupkg/*.nupkg" \
+            --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      - name: Summary
+        run: |
+          {
+            echo "### MisarBlog ${{ steps.ver.outputs.VERSION }} → NuGet"
+            echo "Published via Trusted Publishing (OIDC) — no stored API key."
+          } >> "$GITHUB_STEP_SUMMARY"
