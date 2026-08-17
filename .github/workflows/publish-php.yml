@@ -4,8 +4,13 @@ on:
     tags: ['php/v*']
   workflow_dispatch:
 # Packagist mirrors from GitHub via webhook — this triggers the sync API.
+#
+# It must point at misarblog-php, not this monorepo: Packagist reads composer.json
+# from the repository ROOT and cannot index a subdirectory. split-standalone.yml
+# populates and tags that repo first, so run this after it.
 jobs:
   notify-packagist:
+    needs: []
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Packagist update
@@ -16,4 +21,4 @@ jobs:
           curl -sSf -X POST \
             -H "Content-Type: application/json" \
             "https://packagist.org/api/update-package?username=${PACKAGIST_USERNAME}&apiToken=${PACKAGIST_TOKEN}" \
-            -d '{"repository":{"url":"https://github.com/Misar-AI/misarblog-sdks"}}'
+            -d '{"repository":{"url":"https://github.com/Misar-AI/misarblog-php"}}'

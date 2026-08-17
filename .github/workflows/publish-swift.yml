@@ -4,7 +4,13 @@ on:
     tags: ['swift/v*']
   workflow_dispatch:
 # SPM resolves directly from GitHub tags — the tag itself is the "publish".
-# Consumers add: .package(url: "https://github.com/Misar-AI/<PRODUCT>-sdks", from: "0.1.0")
+#
+# Consumers depend on misarblog-swift, NOT this monorepo: SwiftPM requires
+# Package.swift at the repository root and cannot resolve a subdirectory.
+# split-standalone.yml mirrors swift/ there and pushes the vX.Y.Z tag that
+# SPM actually resolves; this job is the gate that it compiles and passes
+# tests first.
+# Consumers add: .package(url: "https://github.com/Misar-AI/misarblog-swift.git", from: "1.0.0")
 jobs:
   validate:
     runs-on: macos-14
