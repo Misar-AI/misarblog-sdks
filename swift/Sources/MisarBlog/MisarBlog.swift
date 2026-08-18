@@ -9,6 +9,13 @@ import FoundationNetworking
 public class MisarBlog {
     private let embedBase = "https://misar.blog"
 
+    /// Swift gives a public class an *internal* memberwise/default init unless one
+    /// is declared, so without this `MisarBlog()` does not compile outside the
+    /// module — every method below was unreachable to anyone depending on the
+    /// package. The tests missed it because `@testable import` bypasses exactly
+    /// this access check.
+    public init() {}
+
     public struct TokenResult: Codable {
         public let token: String
         public let expiresAt: Int64

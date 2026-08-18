@@ -1,7 +1,7 @@
 {
   "name": "@misarblog/sdk",
-  "version": "1.1.1",
-  "description": "Official TypeScript/JavaScript SDK for the Misar.Blog developer API \u2014 articles, drafts, series, comments, follows, reactions, AI completion/titles, image generation, search, analytics, plan and trial.",
+  "version": "1.1.0",
+  "description": "Typed client for misar.blog, a hosted blogging platform: publish and schedule Markdown articles, manage drafts and series, read comments, reactions, follows and analytics, generate SEO titles, completions and AI cover images, and search. Node 18+ and browsers; retry with back-off, typed plan-limit errors, iframe embed helpers.",
   "type": "module",
   "license": "MIT",
   "author": "Misar AI <hello@misar.io>",
@@ -16,12 +16,20 @@
   },
   "keywords": [
     "misarblog",
+    "misar",
     "blog",
-    "sdk",
-    "api",
+    "blogging",
     "publishing",
-    "content",
-    "typescript"
+    "cms",
+    "headless-cms",
+    "articles",
+    "markdown",
+    "content-api",
+    "api-client",
+    "sdk",
+    "typescript",
+    "seo",
+    "newsletter"
   ],
   "engines": {
     "node": ">=18"

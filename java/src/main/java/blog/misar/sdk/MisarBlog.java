@@ -21,8 +21,8 @@ import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 /**
- * Client for the <b>Misar.Blog developer API</b> — full coverage of the 23
- * developer operations.
+ * Client for the <b>Misar.Blog developer API</b> — full coverage of the 25
+ * key-authenticated operations.
  *
  * <p>Authentication uses a developer key sent as {@code Authorization: Bearer mbk_...}
  * (OAuth 2.1 access tokens are accepted on the same header). The default base URL

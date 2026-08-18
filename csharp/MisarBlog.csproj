@@ -13,11 +13,11 @@
     <Version>1.1.0</Version>
     <Authors>Misar AI</Authors>
     <Company>Misar AI Technology Pvt Ltd</Company>
-    <Description>Official C# SDK for the Misar.Blog developer API — articles, drafts, series, comments, follows, reactions, AI, images, search, analytics, plan/trial. Full 25-operation coverage with async/await.</Description>
+    <Description>C# client for misar.blog, a hosted blogging platform: publish and schedule Markdown articles, manage drafts and series, read comments, reactions, follows and analytics, generate SEO titles, completions and AI cover images, and search. .NET 8 async/await; retry with back-off, typed plan-limit exceptions, iframe embed URLs.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://docs.misar.io/blog</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Misar-AI/misarblog-sdks</RepositoryUrl>
-    <PackageTags>misarblog;blog;sdk;api;publishing;content</PackageTags>
+    <PackageTags>misarblog;misar;blog;blogging;publishing;cms;headless-cms;articles;markdown;content-api;api-client;sdk;seo</PackageTags>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 

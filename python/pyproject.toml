@@ -5,12 +5,27 @@ build-backend = "hatchling.build"
 [project]
 name = "misarblog"
 version = "1.1.0"
-description = "Official Python SDK for Misar.Blog — all 25 developer-API operations: articles, drafts, series, comments, follows, reactions, AI, images, search, analytics, plan"
+description = "Sync + async client for misar.blog, a hosted blogging platform: publish and schedule Markdown articles, manage drafts and series, read comments, reactions, follows and analytics, generate SEO titles, completions and AI cover images, and search."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [{ name = "Misar AI", email = "hello@misar.io" }]
-keywords = ["misarblog", "blog", "sdk", "api", "content", "publishing"]
+keywords = [
+  "misarblog",
+  "misar",
+  "blog",
+  "blogging",
+  "publishing",
+  "cms",
+  "headless-cms",
+  "articles",
+  "markdown",
+  "content-api",
+  "api-client",
+  "sdk",
+  "seo",
+  "asyncio",
+]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
@@ -20,6 +35,11 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Text Processing :: Markup :: Markdown",
+  "Framework :: AsyncIO",
+  "Typing :: Typed",
 ]
 dependencies = ["httpx>=0.27"]
 

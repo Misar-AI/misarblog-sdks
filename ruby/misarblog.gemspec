@@ -3,10 +3,18 @@ Gem::Specification.new do |spec|
   spec.version       = "1.1.0"
   spec.authors       = ["Misar AI"]
   spec.email         = ["hello@misar.io"]
-  spec.summary       = "Official Ruby SDK for Misar.Blog — articles, series, reactions, AI, analytics"
-  spec.description   = "Full-featured Ruby SDK for the Misar.Blog developer API " \
-                       "(api.misar.io/blog/v1). Covers all 25 dev-API operations with " \
-                       "typed models, mbk_ bearer auth, and retry with exponential backoff."
+  spec.summary       = "Ruby client for misar.blog, a hosted blogging platform: publish and " \
+                       "schedule Markdown articles, manage drafts and series, read comments, " \
+                       "reactions, follows and analytics, and generate AI titles and covers."
+  spec.description   = "Ruby client for the developer API of Misar.Blog (misar.blog), a hosted " \
+                       "blogging platform. Publish or schedule Markdown articles, save and update " \
+                       "drafts, group articles into series, read comment threads, reactions and " \
+                       "follows, pull an analytics summary and live plan/quota state, generate " \
+                       "SEO/AEO/GEO title suggestions, completions and AI cover images, search " \
+                       "articles, profiles and tags, and build public iframe embed URLs — all 25 " \
+                       "key-authenticated operations. Standard library only (net/http): mbk_ bearer " \
+                       "auth, retry with exponential back-off, and a typed PlanLimitError carrying " \
+                       "the upgrade URL."
   spec.homepage      = "https://www.misar.blog/docs/sdks/ruby"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 2.7"

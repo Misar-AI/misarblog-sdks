@@ -14,8 +14,8 @@ import java.nio.charset.StandardCharsets
 import java.time.Duration
 
 /**
- * Client for the **Misar.Blog developer API** — full coverage of the 23
- * developer operations.
+ * Client for the **Misar.Blog developer API** — full coverage of the 25
+ * key-authenticated operations.
  *
  * Authentication uses a developer key sent as `Authorization: Bearer mbk_...`
  * (OAuth 2.1 access tokens are accepted on the same header). The default base URL

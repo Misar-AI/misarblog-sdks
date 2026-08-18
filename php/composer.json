@@ -1,10 +1,24 @@
 {
   "name": "misarai/misarblog-php",
-  "description": "Official PHP SDK for the Misar.Blog developer API — articles, drafts, series, comments, follows, reactions, AI, images, search, analytics, plan/trial. Full 25-operation coverage.",
+  "description": "PHP client for misar.blog, a hosted blogging platform: publish and schedule Markdown articles, manage drafts and series, read comments, reactions, follows and analytics, generate SEO titles, completions and AI cover images, and search. PHP 8.1+ on cURL; retry with back-off, typed plan-limit errors, iframe embed URLs.",
   "type": "library",
   "license": "MIT",
   "homepage": "https://docs.misar.io/blog",
-  "keywords": ["misarblog", "blog", "sdk", "php", "publishing", "content", "api"],
+  "keywords": [
+    "misarblog",
+    "misar",
+    "blog",
+    "blogging",
+    "publishing",
+    "cms",
+    "headless-cms",
+    "articles",
+    "markdown",
+    "content-api",
+    "api-client",
+    "sdk",
+    "seo"
+  ],
   "authors": [
     {
       "name": "Misar AI",

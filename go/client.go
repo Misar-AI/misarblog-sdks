@@ -1,11 +1,40 @@
-// Package misarblog is the official Go client for the Misar.Blog developer API.
+// Package misarblog is the Go client for Misar.Blog (https://misar.blog), a
+// hosted blogging platform: publish and schedule Markdown articles, manage
+// drafts and series, read comments, reactions, follows and per-account
+// analytics, generate SEO titles, completions and AI cover images, and search
+// articles, profiles and tags.
 //
 // Base URL is https://api.misar.io/blog/v1 — the blog gateway strips /api, so
 // request paths never carry an /api prefix. Authenticate with a developer key
-// (mbk_...) or an OAuth 2.1 access token, sent as a Bearer token.
+// (mbk_...) or an OAuth 2.1 access token, sent as a Bearer token. Mint a key at
+// https://www.misar.blog/dashboard/settings/api; key management itself is a
+// cookie-session flow and is deliberately not exposed here.
+//
+// The 25 key-authenticated operations are grouped into resources hanging off
+// [Client]: Articles, Series, Reactions, Comments, Follows, AI, Images, Me,
+// Analytics, Plan, Trial and UpsellFunnel. Every method takes a
+// [context.Context] and returns a typed struct plus an error.
 //
 //	blog := misarblog.New("mbk_...")
 //	me, err := blog.Me.Get(context.Background())
+//	article, err := blog.Articles.Publish(context.Background(), &misarblog.PublishArticleRequest{
+//		Title:        "Hello, Misar",
+//		BodyMarkdown: "# Hello\n\nFirst post.",
+//	})
+//
+// Failures come back as [*APIError] for any non-2xx, [*PlanLimitError] when the
+// subscription attached to the key blocks the call (it carries the plan slug and
+// upgrade URL, and is never retried) or [*NetworkError] when the request never
+// reached the API. Statuses 429/500/502/503/504 and transport failures are
+// retried up to three attempts with exponential back-off from 200ms; tune the
+// client with [WithMaxRetries], [WithTimeout], [WithBaseURL] and
+// [WithHTTPClient].
+//
+// Every operation is a single request/response — the API exposes no SSE or
+// WebSocket endpoint that accepts an API key, and no webhook registration route.
+//
+// [EmbedURL] builds the public iframe URL for a profile or a single article; it
+// needs no key and is unmetered.
 package misarblog
 
 import (

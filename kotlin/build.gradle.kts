@@ -19,6 +19,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.1")
     testImplementation(kotlin("test"))
+    // Gradle 9 no longer puts the JUnit Platform launcher on the test runtime
+    // classpath implicitly. Without it `gradle test` dies with "Failed to load
+    // JUnit Platform" before running a single test.
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
 }
 
@@ -45,7 +49,13 @@ publishing {
 
             pom {
                 name.set("Misar.Blog Kotlin SDK")
-                description.set("Official Kotlin SDK for the Misar.Blog developer API — coroutines, full 25-operation coverage, retry with back-off, typed plan-limit errors")
+                description.set(
+                    "Kotlin client for misar.blog, a hosted blogging platform: publish and schedule " +
+                        "Markdown articles, manage drafts and series, read comments, reactions, follows " +
+                        "and analytics, generate SEO titles, completions and AI cover images, and search. " +
+                        "Coroutine suspend functions; retry with back-off, typed plan-limit errors, " +
+                        "iframe embed URLs."
+                )
                 url.set("https://docs.misar.io/blog/sdks/kotlin")
                 licenses {
                     license {

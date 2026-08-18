@@ -2,14 +2,15 @@
 name = "misarblog"
 version = "1.1.0"
 edition = "2021"
-description = "Official Rust SDK for the Misar.Blog developer API — full 25-operation coverage, async, typed models, retry with back-off"
+description = "Async client for misar.blog, a hosted blogging platform: publish and schedule Markdown articles, manage drafts and series, read comments, reactions, follows and analytics, generate SEO titles, completions and AI cover images, and search. Typed errors, retry with back-off."
 license = "MIT"
 authors = ["Misar AI <hello@misar.io>"]
-homepage = "https://docs.misar.io/blog"
+homepage = "https://misar.blog"
 repository = "https://github.com/Misar-AI/misarblog-sdks"
-documentation = "https://docs.misar.io/blog/sdks/rust"
-keywords = ["blog", "api", "sdk", "misar", "content"]
-categories = ["api-bindings"]
+documentation = "https://docs.rs/misarblog"
+readme = "README.md"
+keywords = ["blog", "blogging", "publishing", "cms", "markdown"]
+categories = ["api-bindings", "web-programming::http-client"]
 
 [dependencies]
 reqwest = { version = "0.12", features = ["json"] }
