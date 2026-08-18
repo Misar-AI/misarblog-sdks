@@ -58,11 +58,15 @@ jobs:
       # puts a managed gradle on PATH, which is what this uses.
       - run: gradle test
         working-directory: kotlin
-      - run: gradle publishAllPublicationsToCentralRepository
+      # These names are not decorative: com.vanniktech.maven.publish reads Gradle
+      # properties, and the ORG_GRADLE_PROJECT_ prefix is how an env var becomes
+      # one. The previous MAVEN_CENTRAL_* / SIGNING_* names were read by nothing,
+      # so signing silently no-opped and the upload went out unsigned.
+      - run: gradle publishToMavenCentral --no-daemon --no-configuration-cache
         working-directory: kotlin
         env:
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_CENTRAL_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          SIGNING_KEY_ID: ${{ secrets.GPG_KEY_ID }}
-          SIGNING_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          SIGNING_PASSWORD: ${{ secrets.GPG_PASSPHRASE }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_TOKEN }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}

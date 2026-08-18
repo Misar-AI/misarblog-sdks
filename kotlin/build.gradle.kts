@@ -1,8 +1,13 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
     kotlin("jvm") version "1.9.25"
     `java-library`
-    `maven-publish`
-    signing
+    // NOT `maven-publish` + `signing`. Those upload by PUTting each file to the
+    // repository URL, but https://central.sonatype.com/api/v1/publisher/upload is
+    // a bundle POST API, not a Maven repo — every PUT 404s and nothing is ever
+    // published. This plugin speaks the Central Portal protocol.
+    id("com.vanniktech.maven.publish") version "0.30.0"
 }
 
 // Must match the publication's groupId below and the namespace verified on
@@ -34,73 +39,50 @@ tasks.test {
     useJUnitPlatform()
 }
 
-java {
-    withSourcesJar()
-    // Central rejects a release without a javadoc jar.
-    withJavadocJar()
-}
+// The sources and javadoc jars Central requires are produced by the publishing
+// plugin's KotlinJvm configuration below, so declaring them here too would make
+// Gradle build two artifacts for the same classifier.
 
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-            groupId = "blog.misar"
-            artifactId = "misarblog-sdk"
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+    signAllPublications()
+    // Was "misarblog-sdk", which matched neither sibling. Nothing was ever
+    // published under it, so there is no one to break by making the three
+    // consistent: misarblog-kotlin / misarmail-kotlin / misarreach-kotlin.
+    coordinates("blog.misar", "misarblog-kotlin", version.toString())
 
-            pom {
-                name.set("Misar.Blog Kotlin SDK")
-                description.set(
-                    "Kotlin client for misar.blog, a hosted blogging platform: publish and schedule " +
-                        "Markdown articles, manage drafts and series, read comments, reactions, follows " +
-                        "and analytics, generate SEO titles, completions and AI cover images, and search. " +
-                        "Coroutine suspend functions; retry with back-off, typed plan-limit errors, " +
-                        "iframe embed URLs."
-                )
-                url.set("https://docs.misar.io/blog/sdks/kotlin")
-                licenses {
-                    license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
-                    }
-                }
-                developers {
-                    developer {
-                        name.set("Misar AI")
-                        email.set("hello@misar.io")
-                        organization.set("Misar AI Technology Pvt Ltd")
-                        organizationUrl.set("https://misar.io")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:https://github.com/Misar-AI/misarblog-sdks.git")
-                    developerConnection.set("scm:git:ssh://git@github.com/Misar-AI/misarblog-sdks.git")
-                    url.set("https://github.com/Misar-AI/misarblog-sdks")
-                }
+    pom {
+        name.set("Misar.Blog Kotlin SDK")
+        description.set(
+            "Kotlin client for misar.blog, a hosted blogging platform: publish and schedule " +
+                "Markdown articles, manage drafts and series, read comments, reactions, follows " +
+                "and analytics, generate SEO titles, completions and AI cover images, and search. " +
+                "Coroutine suspend functions; retry with back-off, typed plan-limit errors, " +
+                "iframe embed URLs."
+        )
+        url.set("https://www.misar.blog")
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://opensource.org/licenses/MIT")
             }
         }
-    }
-
-    repositories {
-        maven {
-            name = "central"
-            url = uri("https://central.sonatype.com/api/v1/publisher/upload")
-            credentials {
-                username = System.getenv("MAVEN_CENTRAL_USERNAME")
-                password = System.getenv("MAVEN_CENTRAL_PASSWORD")
+        developers {
+            developer {
+                name.set("Misar AI")
+                email.set("hello@misar.io")
+                organization.set("Misar AI Technology Pvt Ltd")
+                organizationUrl.set("https://misar.io")
             }
         }
-    }
-}
-
-signing {
-    // Only sign when CI supplies a key, so a local `gradle build` still works
-    // without GPG configured.
-    val signingKey: String? = System.getenv("GPG_PRIVATE_KEY")
-    val signingPassphrase: String? = System.getenv("GPG_PASSPHRASE")
-    isRequired = signingKey != null
-
-    if (signingKey != null) {
-        useInMemoryPgpKeys(signingKey, signingPassphrase)
-        sign(publishing.publications["mavenJava"])
+        scm {
+            connection.set("scm:git:https://github.com/Misar-AI/misarblog-sdks.git")
+            developerConnection.set("scm:git:ssh://git@github.com/Misar-AI/misarblog-sdks.git")
+            url.set("https://github.com/Misar-AI/misarblog-sdks")
+        }
+        issueManagement {
+            system.set("GitHub Issues")
+            url.set("https://github.com/Misar-AI/misarblog-sdks/issues")
+        }
     }
 }

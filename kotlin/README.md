@@ -1,57 +1,112 @@
 # Misar.Blog Kotlin SDK
 
-[Misar.Blog](https://misar.blog) is a hosted blogging platform. Authors write in
-Markdown, publish or schedule articles, group them into series, and get
-comments, reactions, follows, subscriber- and paid-gated posts, AI writing
-helpers and per-account analytics. This artifact is the official Kotlin client
-for its developer API at `https://api.misar.io/blog/v1` — for anyone automating
-publishing, syncing a blog out of CI or another CMS, or building a reader,
-dashboard or integration on top of a Misar.Blog account.
+> Publish, schedule and manage a Misar.Blog account from Kotlin coroutines.
 
-## Features
+[![Maven Central](https://img.shields.io/badge/maven--central-blog.misar%3Amisarblog--kotlin-blue)](https://central.sonatype.com/artifact/blog.misar/misarblog-kotlin) [![JVM](https://img.shields.io/badge/jvm-17-orange)](https://openjdk.org) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-The API surface this SDK covers, in full:
+**10 resource groups · 25 suspend functions · coroutines on java.net.http**
 
-- **Articles** — list and filter by status, visibility, webhook-only or sort
-  order, fetch by slug or UUID, publish or schedule from Markdown, update in
-  place, and save drafts.
-- **Series** — list, create, and add an article at a position.
-- **Reactions** — `like` / `clap` / `bookmark` counts plus the caller's own
-  reactions; add and remove.
-- **Comments** — read an article's thread, newest first, replies nested one
-  level deep.
-- **Follows** — a profile's follower/following counts and whether the key's
-  owner follows it.
-- **AI** — SEO/AEO/GEO title suggestions (`suggest` from existing copy, `seo`
-  from a keyword) and free-form system + user completions.
-- **Images** — AI cover-image generation (`1024x1024`, `1792x1024`,
-  `1024x1792`) and CDN upload.
-- **Discovery** — full-text search across articles, profiles and tags, and
-  related-article recommendations.
-- **Account** — the authenticated profile, an analytics summary (views,
-  gross/net revenue, active subscribers), live plan and quota, the self-serve
-  trial, and the upsell funnel (platform-admin keys only).
-- **Embeds** — build a public iframe URL for a profile or a single article.
-  Unauthenticated and unmetered.
+Works with any coroutine-aware JVM codebase on toolchain 17 — a `runBlocking`
+script, an Android `viewModelScope`, a Ktor or Spring service syncing a blog out
+of another CMS. Covers the developer API at `https://api.misar.io/blog/v1` in
+full.
 
-That is all 25 key-authenticated operations.
+---
+
+## Install
+
+### Gradle (Kotlin DSL)
+
+```kotlin
+implementation("blog.misar:misarblog-kotlin:1.1.0")
+```
+
+### Gradle (Groovy)
+
+```groovy
+implementation 'blog.misar:misarblog-kotlin:1.1.0'
+```
+
+### Maven
+
+```xml
+<dependency>
+    <groupId>blog.misar</groupId>
+    <artifactId>misarblog-kotlin</artifactId>
+    <version>1.1.0</version>
+</dependency>
+```
+
+JVM toolchain 17. Note the artifact id is `misarblog-kotlin`; `blog.misar:misarblog`
+is the separate Java SDK.
+
+---
+
+## Authentication
+
+Mint a key in the dashboard at
+<https://www.misar.blog/dashboard/settings/api>. Keys are prefixed `mbk_` and
+travel on `Authorization: Bearer`; an OAuth 2.1 access token works on the same
+header. Key management itself is a cookie-session flow and is deliberately not
+exposed here. Construct the client with
+`MisarBlog(System.getenv("MISARBLOG_API_KEY"))`, as the first example below
+does.
+
+The machine-readable contract for every route below is the OpenAPI spec at
+<https://api.misar.io/blog/v1/openapi.json>.
+
+---
+
+## API surface
+
+Every operation is a `suspend` function dispatched on `Dispatchers.IO`. Call
+them from a coroutine — `runBlocking` in a script, `viewModelScope` in an app,
+`kotlinx-coroutines-test` in tests.
+
+| Resource | Method | Endpoint | What it does |
+| --- | --- | --- | --- |
+| `articles` | `list` | `GET /articles` | List your articles, filtered by status/visibility/sort |
+| `articles` | `get` | `GET /articles/{slug}` | Fetch one article by slug or UUID, full Markdown body |
+| `articles` | `publish` | `POST /articles` | Publish or schedule an article from Markdown |
+| `articles` | `update` | `PATCH /articles/{slug}` | Update title/body/tags in place; `publish: true` flips a draft live |
+| `articles` | `createDraft` | `POST /drafts` | Save a draft without publishing |
+| `articles` | `search` | `GET /search` | Full-text search across articles, profiles and tags |
+| `articles` | `recommendations` | `GET /recommendations` | Related articles for an article id |
+| `series` | `list` | `GET /series` | List your series |
+| `series` | `create` | `POST /series` | Create a series |
+| `series` | `addArticle` | `POST /series/{slug}/articles` | Add an article to a series at a position |
+| `reactions` | `get` | `GET /reactions` | Reaction counts and the caller's own reactions |
+| `reactions` | `add` | `POST /reactions` | Add a `like` / `clap` / `bookmark` |
+| `reactions` | `remove` | `DELETE /reactions` | Remove a reaction |
+| `comments` | `list` | `GET /comments` | An article's comment thread, newest first, replies one level deep |
+| `follows` | `status` | `GET /follows` | Follower/following counts and whether the key's owner follows |
+| `ai` | `complete` | `POST /ai/complete` | Free-form system + user completion |
+| `ai` | `titles` | `POST /ai/titles` | SEO/AEO/GEO title suggestions (`seo` from a keyword, `suggest` from copy) |
+| `images` | `generate` | `POST /images/generate` | AI cover image (`1024x1024`, `1792x1024`, `1024x1792`) |
+| `images` | `upload` | `POST /images/upload` | Upload an image to the CDN |
+| `account` | `me` | `GET /me` | The authenticated creator profile |
+| `analytics` | `summary` | `GET /analytics` | Views, gross/net revenue, active subscribers for trailing N days |
+| `analytics` | `upsellFunnel` | `GET /upsell-funnel` | Per-feature upsell funnel (platform-admin keys only; a creator key gets 403) |
+| `plan` | `get` | `GET /plan` | Live plan and per-feature quota |
+| `plan` | `trialStatus` | `GET /trial` | Whether a self-serve trial is active |
+| `plan` | `startTrial` | `POST /trial` | Start a self-serve trial |
+
+Note `upsellFunnel` hangs off `analytics`, not `plan`.
+
+---
 
 ## What's in the package
 
-- `blog.misar.sdk.MisarBlog` — the client:
-  `MisarBlog(apiKey, baseUrl = "https://api.misar.io/blog/v1", maxRetries = 3)`.
-- Resource properties on the client: `articles`, `series`, `reactions`,
-  `comments`, `follows`, `ai`, `images`, `account`, `analytics`, `plan`.
-- **Every operation is a `suspend` function**, dispatched on `Dispatchers.IO`.
-  Call them from a coroutine — `runBlocking` in a script, `viewModelScope` in an
-  app, `kotlinx-coroutines-test` in tests.
-- Exceptions: `BlogApiException` (open), `PlanLimitException` and
-  `BlogNetworkException`, both of which extend it.
-- `MisarBlog.embedUrl(username, slug, theme)` — a companion-object function,
-  pure string building for public embeds.
-- `Article` and `Series` data classes, Jackson-mapped with
-  `@JsonIgnoreProperties(ignoreUnknown = true)` so a field the API adds later
-  will not break deserialisation.
+| Item | What it is |
+| --- | --- |
+| `blog.misar.sdk.MisarBlog` | The client: `MisarBlog(apiKey, baseUrl = "https://api.misar.io/blog/v1", maxRetries = 3)` |
+| Resource properties | `articles`, `series`, `reactions`, `comments`, `follows`, `ai`, `images`, `account`, `analytics`, `plan` |
+| `MisarBlog.embedUrl(username, slug, theme)` | A companion-object function, pure string building for public embeds. Unauthenticated and unmetered |
+| `Article`, `Series` | Data classes in `Models.kt`, Jackson-mapped with `@JsonIgnoreProperties(ignoreUnknown = true)` so a field the API adds later will not break deserialisation |
+| `TokenResult` | A data class in `Models.kt` (`token`, `expiresAt`) mirroring the embed-token refresh payload |
+| `BlogApiException` | `open`, the base of the hierarchy. Property: `status` |
+| `PlanLimitException` | Extends `BlogApiException`. Properties: `plan`, `upgradeUrl`, `retryAfter` |
+| `BlogNetworkException` | Extends `BlogApiException` with `status` `0` — transport failure or exhausted retry budget |
 
 **Mostly `Map<String, Any>`.** Only `articles.get`, `articles.publish`,
 `articles.update`, `articles.createDraft` and `series.create` return typed
@@ -72,28 +127,11 @@ SSE or WebSocket endpoint accepts an API key, and the API has no webhook
 registration route — `webhook_only` is an article *visibility* value, not a
 subscription.
 
-## Install
+---
 
-Gradle (Kotlin DSL):
+## Examples
 
-```kotlin
-implementation("blog.misar:misarblog-sdk:1.1.0")
-```
-
-Maven:
-
-```xml
-<dependency>
-    <groupId>blog.misar</groupId>
-    <artifactId>misarblog-sdk</artifactId>
-    <version>1.1.0</version>
-</dependency>
-```
-
-JVM toolchain 17. Note the artifact id is `misarblog-sdk`; `blog.misar:misarblog`
-is the separate Java SDK.
-
-## Quick start
+### Authenticate and publish
 
 ```kotlin
 import blog.misar.sdk.MisarBlog
@@ -115,12 +153,6 @@ fun main() = runBlocking {
     println(article.url)
 }
 ```
-
-Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
-`mbk_`; an OAuth 2.1 access token works on the same header. Key management
-itself is a cookie-session flow and is deliberately not exposed here.
-
-## Primary functions
 
 ### Publish (or schedule) an article
 
@@ -266,6 +298,8 @@ val url = MisarBlog.embedUrl("gulshan", "hello-misar", theme = "dark")
 Omit `slug` to embed the whole profile; `theme` defaults to `"auto"`, which adds
 no query parameter.
 
+---
+
 ## Errors
 
 Every failure throws. `PlanLimitException` and `BlogNetworkException` both extend
@@ -296,13 +330,15 @@ Unlike the TypeScript, Python and Go clients, the 403 scope details
 (`required_scope`, `granted_scopes`) are not promoted to properties here — the
 raw error body ends up in `message`.
 
+---
+
 ## Links
 
-- Misar.Blog — <https://misar.blog>
-- API docs — <https://docs.misar.io/blog>
-- OpenAPI spec — <https://api.misar.io/blog/v1/openapi.json>
-- Mint an API key — <https://www.misar.blog/dashboard/settings/api>
+- Website — https://www.misar.blog
+- App — https://www.misar.blog
+- Parent — https://misar.io
+- Documentation — https://docs.misar.io/blog
+- Source — https://github.com/Misar-AI/misarblog-sdks
+- Maven Central — https://central.sonatype.com/artifact/blog.misar/misarblog-kotlin
 
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT © [Misar AI](https://misar.io)
