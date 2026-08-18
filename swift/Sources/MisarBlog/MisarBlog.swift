@@ -1,5 +1,11 @@
 import Foundation
 
+// URLSession, URLRequest and HTTPURLResponse live in FoundationNetworking on
+// Linux rather than Foundation.
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
 public class MisarBlog {
     private let embedBase = "https://misar.blog"
 

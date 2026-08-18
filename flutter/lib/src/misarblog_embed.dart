@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:webview_flutter/webview_flutter.dart";
-import "package:misarblog_sdk/misarblog.dart";
+import "package:misarblog/misarblog.dart";
 
 class MisarBlogEmbed extends StatelessWidget {
   final String username;

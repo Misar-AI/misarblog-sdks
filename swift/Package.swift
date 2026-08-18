@@ -8,6 +8,11 @@ let package = Package(
         .library(name: "MisarBlog", targets: ["MisarBlog"])
     ],
     targets: [
-        .target(name: "MisarBlog", path: "Sources/MisarBlog")
+        .target(name: "MisarBlog", path: "Sources/MisarBlog"),
+        .testTarget(
+            name: "MisarBlogTests",
+            dependencies: ["MisarBlog"],
+            path: "Tests/MisarBlogTests"
+        )
     ]
 )

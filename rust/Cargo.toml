@@ -1,10 +1,23 @@
 [package]
-name = "misarblog-sdk"
-version = "0.1.0"
+name = "misarblog"
+version = "1.1.0"
 edition = "2021"
+description = "Official Rust SDK for the Misar.Blog developer API — full 25-operation coverage, async, typed models, retry with back-off"
+license = "MIT"
+authors = ["Misar AI <hello@misar.io>"]
+homepage = "https://docs.misar.io/blog"
+repository = "https://github.com/Misar-AI/misarblog-sdks"
+documentation = "https://docs.misar.io/blog/sdks/rust"
+keywords = ["blog", "api", "sdk", "misar", "content"]
+categories = ["api-bindings"]
 
 [dependencies]
-reqwest = { version = "0.11", features = ["json"] }
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+thiserror = "1"
+
+[dev-dependencies]
+wiremock = "0.6"
+tokio = { version = "1", features = ["full"] }

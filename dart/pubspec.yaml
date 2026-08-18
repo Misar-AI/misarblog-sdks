@@ -1,9 +1,15 @@
-name: misarblog_sdk
-description: MisarBlog SDK for Dart
-version: 0.1.0
+name: misarblog
+description: Official Dart SDK for Misar.Blog — articles, series, reactions, AI, analytics. Full dev-API coverage with typed models and retry.
+version: 1.1.0
+homepage: https://www.misar.blog/docs/sdks/dart
+repository: https://github.com/Misar-AI/misarblog-sdks
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-  http: ^1.0.0
+  http: ^1.2.0
+
+dev_dependencies:
+  test: ^1.25.0
+  lints: ^3.0.0

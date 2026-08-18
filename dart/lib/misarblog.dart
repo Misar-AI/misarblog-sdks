@@ -1,2 +1,4 @@
 export "src/embed.dart";
-export "src/auth.dart";
+export "src/client.dart";
+export "src/errors.dart";
+export "src/models.dart";
