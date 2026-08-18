@@ -53,9 +53,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew test
+      # `gradle`, not `./gradlew`: no Gradle wrapper is committed in this repo,
+      # so gradle exits 127 "No such file or directory". setup-gradle above
+      # puts a managed gradle on PATH, which is what this uses.
+      - run: gradle test
         working-directory: kotlin
-      - run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
+      - run: gradle publishToSonatype closeAndReleaseSonatypeStagingRepository
         working-directory: kotlin
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
