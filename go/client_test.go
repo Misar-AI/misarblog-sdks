@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	misarblog "github.com/Misar-AI/misarblog-sdks/go"
+	misarblog "github.com/Misar-AI/misarblog-sdks/go/v5"
 )
 
 func newTestClient(server *httptest.Server) *misarblog.Client {

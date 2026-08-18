@@ -1,75 +1,17 @@
 # Misar.Blog Ruby SDK
 
-[Misar.Blog](https://misar.blog) is a hosted blogging platform. Authors write in
-Markdown, publish or schedule articles, group them into series, and get
-comments, reactions, follows, subscriber- and paid-gated posts, AI writing
-helpers and per-account analytics. This gem is the official Ruby client for its
-developer API at `https://api.misar.io/blog/v1` — for anyone automating
-publishing, syncing a blog out of CI or another CMS, or building a reader,
-dashboard or integration on top of a Misar.Blog account.
+> The official Ruby client for the Misar.Blog developer API.
 
-## Features
+[![gem](https://img.shields.io/gem/v/misarblog)](https://rubygems.org/gems/misarblog) [![Ruby](https://img.shields.io/badge/ruby-%3E%3D2.7-CC342D)](https://www.ruby-lang.org) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-The API surface this SDK covers, in full:
+**9 resource groups · 25 operations · standard library only (net/http)**
 
-- **Articles** — list and filter by status, visibility, webhook-only or sort
-  order, fetch by slug or UUID, publish or schedule from Markdown, update in
-  place, and save drafts.
-- **Series** — list, create, and add an article at a position.
-- **Reactions** — `like` / `clap` / `bookmark` counts plus the caller's own
-  reactions; add and remove.
-- **Comments** — read an article's thread, newest first, replies nested one
-  level deep.
-- **Follows** — a profile's follower/following counts and whether the key's
-  owner follows it.
-- **AI** — SEO/AEO/GEO title suggestions (`suggest` from existing copy, `seo`
-  from a keyword) and free-form system + user completions.
-- **Images** — AI cover-image generation (`1024x1024`, `1792x1024`,
-  `1024x1792`) and CDN upload.
-- **Discovery** — full-text search across articles, profiles and tags, and
-  related-article recommendations.
-- **Account** — the authenticated profile, an analytics summary (views,
-  gross/net revenue, active subscribers), live plan and quota, the self-serve
-  trial, and the upsell funnel (platform-admin keys only).
-- **Embeds** — build a public iframe URL for a profile or a single article.
-  Unauthenticated and unmetered.
+Works with any Ruby 2.7+ program that needs to drive a
+[Misar.Blog](https://www.misar.blog) account: automating publishing, syncing a
+blog out of CI or another CMS, or building a reader, dashboard or integration on
+top of the API at `https://api.misar.io/blog/v1`.
 
-That is all 25 key-authenticated operations.
-
-## What's in the package
-
-- `MisarBlog::Client` — the client. `MisarBlog.new(api_key:, base_url:,
-  timeout: 30, max_retries: 3)` is the shorthand constructor.
-- Resource readers on the client: `articles`, `series`, `reactions`, `comments`,
-  `follows`, `ai`, `images`, `account`, `analytics`. Plan, trial and upsell live
-  on `account`.
-- Errors: `MisarBlog::ApiError`, `MisarBlog::PlanLimitError`,
-  `MisarBlog::NetworkError`.
-- `MisarBlog.embed_url(username:, slug:, theme:)` — pure string building for
-  public embeds.
-- `MisarBlog::Models` — `Article`, `ArticleList`, `Series`, `SeriesList`,
-  `Profile`, `Plan`, `PlanUsage`, `Analytics`, `ArticleReactions`,
-  `ReactionResult`, `TrialStatus`, `TitlesResult`, `TitleSuggestion`, `AiText`,
-  `ImageResult`. Each wraps the decoded body: named readers for the documented
-  fields, `#[]` for string-key access, and `#raw` / `#to_h` for the untouched
-  Hash, so a field the API adds after this release is still reachable.
-- **Not everything is modelled.** `comments.list`, `follows.status`,
-  `articles.search`, `articles.recommendations`, `account.start_trial` and
-  `account.upsell_funnel` return the plain decoded `Hash` with string keys.
-- `client.request(method, path, data)` is public, so an endpoint this SDK does
-  not wrap yet is still one call away.
-
-**Transport.** Standard library only — `net/http`, `uri`, `json`; no runtime
-gem dependencies. Base URL `https://api.misar.io/blog/v1`; the key goes on
-`Authorization: Bearer`. Statuses 429/500/502/503/504 and connection failures
-are retried up to `max_retries` attempts (default 3) with exponential back-off
-from 300 ms; the final attempt is always surfaced. Open timeout 10 s, read
-timeout `timeout:` (default 30 s). A `204` or empty body returns `{}`.
-
-**No streaming or webhooks.** Every operation is a single request/response. No
-SSE or WebSocket endpoint accepts an API key, and the API has no webhook
-registration route — `webhook_only` is an article *visibility* value, not a
-subscription.
+---
 
 ## Install
 
@@ -85,7 +27,87 @@ gem "misarblog", "~> 1.1"
 
 Ruby 2.7+.
 
-## Quick start
+---
+
+## Authentication
+
+Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
+`mbk_`; an OAuth 2.1 access token works on the same header. Key management
+`MisarBlog.new(api_key:, base_url:, timeout:, max_retries:)` is a shorthand that
+delegates to `MisarBlog::Client.new`; the key is sent as
+`Authorization: Bearer`. See the first example below. The full request/response
+contract is published as an OpenAPI document at
+<https://api.misar.io/blog/v1/openapi.json>.
+
+---
+
+## API surface
+
+| Resource | Method | Endpoint | What it does |
+| --- | --- | --- | --- |
+| `articles` | `list` | `GET /articles` | list your articles, filtered by status/visibility/sort |
+| `articles` | `get` | `GET /articles/{slug}` | fetch one article by slug or UUID, full Markdown body |
+| `articles` | `publish` | `POST /articles` | publish or schedule an article from Markdown |
+| `articles` | `update` | `PATCH /articles/{slug}` | update title/body/tags in place; `publish: true` flips a draft live |
+| `articles` | `create_draft` | `POST /drafts` | save a draft without publishing |
+| `articles` | `search` | `GET /search` | full-text search across articles, profiles and tags |
+| `articles` | `recommendations` | `GET /recommendations` | related articles for an article id |
+| `series` | `list` | `GET /series` | list your series |
+| `series` | `create` | `POST /series` | create a series |
+| `series` | `add_article` | `POST /series/{slug}/articles` | add an article to a series at a position |
+| `reactions` | `get` | `GET /reactions` | reaction counts and the caller's own reactions |
+| `reactions` | `add` | `POST /reactions` | add a `like` / `clap` / `bookmark` |
+| `reactions` | `remove` | `DELETE /reactions` | remove a reaction |
+| `comments` | `list` | `GET /comments` | an article's comment thread, newest first, replies one level deep |
+| `follows` | `status` | `GET /follows` | follower/following counts and whether the key's owner follows |
+| `ai` | `complete` | `POST /ai/complete` | free-form system + user completion |
+| `ai` | `titles` | `POST /ai/titles` | SEO/AEO/GEO title suggestions (`seo` from a keyword, `suggest` from copy) |
+| `images` | `generate` | `POST /images/generate` | AI cover image (`1024x1024`, `1792x1024`, `1024x1792`) |
+| `images` | `upload` | `POST /images/upload` | upload an image to the CDN |
+| `account` | `profile` | `GET /me` | the authenticated creator profile |
+| `account` | `plan` | `GET /plan` | live plan and per-feature quota |
+| `account` | `trial_status` | `GET /trial` | whether a self-serve trial is active |
+| `account` | `start_trial` | `POST /trial` | start a self-serve trial |
+| `account` | `upsell_funnel` | `GET /upsell-funnel` | per-feature upsell funnel (platform-admin keys only; a creator key gets 403) |
+| `analytics` | `get` | `GET /analytics` | views, gross/net revenue, active subscribers for trailing N days |
+
+Note the two groupings that differ from the other Misar.Blog SDKs: profile,
+plan, trial and upsell all hang off `account`, and the analytics summary is
+`analytics.get` rather than `analytics.summary`.
+
+---
+
+## What's in the package
+
+| Item | What it is |
+| --- | --- |
+| `MisarBlog::Client` | The client. `MisarBlog.new(api_key:, base_url:, timeout: 30, max_retries: 3)` is the shorthand constructor. Resource readers: `articles`, `series`, `reactions`, `comments`, `follows`, `ai`, `images`, `account`, `analytics`. |
+| Errors | `MisarBlog::ApiError`, `MisarBlog::PlanLimitError`, `MisarBlog::NetworkError`. |
+| `MisarBlog.embed_url(username:, slug:, theme:)` | Pure string building for public embeds. |
+| `MisarBlog::Models` | `Article`, `ArticleList`, `Series`, `SeriesList`, `Profile`, `Plan`, `PlanUsage`, `Analytics`, `ArticleReactions`, `ReactionResult`, `TrialStatus`, `TitlesResult`, `TitleSuggestion`, `AiText`, `ImageResult`. Each wraps the decoded body: named readers for the documented fields, `#[]` for string-key access, and `#raw` / `#to_h` for the untouched Hash, so a field the API adds after this release is still reachable. |
+| `client.request(method, path, data)` | Public, so an endpoint this SDK does not wrap yet is still one call away. |
+
+**Not everything is modelled.** `comments.list`, `follows.status`,
+`articles.search`, `articles.recommendations`, `account.start_trial` and
+`account.upsell_funnel` return the plain decoded `Hash` with string keys.
+
+**Transport.** Standard library only — `net/http`, `uri`, `json`; no runtime
+gem dependencies. Base URL `https://api.misar.io/blog/v1`; the key goes on
+`Authorization: Bearer`. Statuses 429/500/502/503/504 and connection failures
+are retried up to `max_retries` attempts (default 3) with exponential back-off
+from 300 ms; the final attempt is always surfaced. Open timeout 10 s, read
+timeout `timeout:` (default 30 s). A `204` or empty body returns `{}`.
+
+**No streaming or webhooks.** Every operation is a single request/response. No
+SSE or WebSocket endpoint accepts an API key, and the API has no webhook
+registration route — `webhook_only` is an article *visibility* value, not a
+subscription.
+
+---
+
+## Examples
+
+### Authenticate and publish
 
 ```ruby
 require "misarblog"
@@ -102,12 +124,6 @@ article = blog.articles.publish(
 )
 puts article.url
 ```
-
-Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
-`mbk_`; an OAuth 2.1 access token works on the same header. Key management
-itself is a cookie-session flow and is deliberately not exposed here.
-
-## Primary functions
 
 ### Publish (or schedule) an article
 
@@ -230,6 +246,8 @@ puts MisarBlog.embed_url(username: "gulshan", slug: "hello-misar", theme: "dark"
 Omit `slug:` to embed the whole profile; `theme:` defaults to `"auto"`, which
 adds no query parameter.
 
+---
+
 ## Errors
 
 Every failure raises. `PlanLimitError` and `NetworkError` both subclass
@@ -256,15 +274,18 @@ end
 ```
 
 The 403 scope details are not promoted to named readers here — read
-`required_scope` and `granted_scopes` off `e.body`.
+`required_scope` and `granted_scopes` off `e.body`. If a failure lands in the
+wrong class, file it at <https://github.com/Misar-AI/misarblog-sdks/issues>.
+
+---
 
 ## Links
 
-- Misar.Blog — <https://misar.blog>
-- API docs — <https://docs.misar.io/blog>
-- OpenAPI spec — <https://api.misar.io/blog/v1/openapi.json>
-- Mint an API key — <https://www.misar.blog/dashboard/settings/api>
+- Website — https://www.misar.blog
+- App — https://www.misar.blog
+- Parent — https://misar.io
+- Documentation — https://docs.misar.io/blog
+- Source — https://github.com/Misar-AI/misarblog-sdks
+- RubyGems — https://rubygems.org/gems/misarblog
 
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT © [Misar AI](https://misar.io)

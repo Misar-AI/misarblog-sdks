@@ -6,12 +6,12 @@
 
     <groupId>blog.misar</groupId>
     <artifactId>misarblog</artifactId>
-    <version>1.1.0</version>
+    <version>5.0.0</version>
     <packaging>jar</packaging>
 
     <name>Misar.Blog Java SDK</name>
     <description>Java client for misar.blog, a hosted blogging platform: publish and schedule Markdown articles, manage drafts and series, read comments, reactions, follows and analytics, generate SEO titles, completions and AI cover images, and search. Java 17 on java.net.http; retry with back-off, typed plan-limit errors, iframe embed URLs.</description>
-    <url>https://docs.misar.io/blog/sdks/java</url>
+    <url>https://www.misar.blog</url>
 
     <licenses>
         <license>
@@ -31,8 +31,14 @@
 
     <scm>
         <connection>scm:git:https://github.com/Misar-AI/misarblog-sdks.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/Misar-AI/misarblog-sdks.git</developerConnection>
         <url>https://github.com/Misar-AI/misarblog-sdks</url>
     </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/Misar-AI/misarblog-sdks/issues</url>
+    </issueManagement>
 
     <properties>
         <java.version>17</java.version>

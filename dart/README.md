@@ -1,61 +1,109 @@
 # Misar.Blog Dart SDK
 
-[Misar.Blog](https://misar.blog) is a hosted blogging platform. Authors write in
-Markdown, publish or schedule articles, group them into series, and get
-comments, reactions, follows, subscriber- and paid-gated posts, AI writing
-helpers and per-account analytics. This package is the official Dart client for
-its developer API at `https://api.misar.io/blog/v1` — for anyone automating
-publishing, syncing a blog out of CI or another CMS, or building a reader,
-dashboard or integration on top of a Misar.Blog account.
+> The official Dart client for the Misar.Blog developer API.
 
-## Features
+[![pub](https://img.shields.io/pub/v/misarblog)](https://pub.dev/packages/misarblog) [![Dart](https://img.shields.io/badge/dart-%3E%3D3.0-0175C2)](https://dart.dev) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-The API surface this SDK covers, in full:
+**9 resource groups · 25 operations · Dart 3, one `package:http` dependency**
 
-- **Articles** — list and filter by status, visibility, webhook-only or sort
-  order, fetch by slug or UUID, publish or schedule from Markdown, update in
-  place, and save drafts.
-- **Series** — list, create, and add an article at a position.
-- **Reactions** — `like` / `clap` / `bookmark` counts plus the caller's own
-  reactions; add and remove.
-- **Comments** — read an article's thread, newest first, replies nested one
-  level deep.
-- **Follows** — a profile's follower/following counts and whether the key's
-  owner follows it.
-- **AI** — SEO/AEO/GEO title suggestions (`suggest` from existing copy, `seo`
-  from a keyword) and free-form system + user completions.
-- **Images** — AI cover-image generation (`1024x1024`, `1792x1024`,
-  `1024x1792`) and CDN upload.
-- **Discovery** — full-text search across articles, profiles and tags, and
-  related-article recommendations.
-- **Account** — the authenticated profile, an analytics summary (views,
-  gross/net revenue, active subscribers), live plan and quota, the self-serve
-  trial, and the upsell funnel (platform-admin keys only).
-- **Embeds** — build a public iframe URL for a profile or a single article.
-  Unauthenticated and unmetered.
+Works with any Dart 3 program and any Flutter app — a reader UI, a CLI that
+syncs a blog out of CI or another CMS, a server-side handler. Covers the
+developer API at `https://api.misar.io/blog/v1` in full: publish or schedule
+Markdown articles, group them into series, and read comments, reactions,
+follows, AI writing helpers and per-account analytics.
 
-That is all 25 key-authenticated operations.
+---
+
+## Install
+
+### Dart
+
+```bash
+dart pub add misarblog
+```
+
+### Flutter
+
+```bash
+flutter pub add misarblog
+```
+
+### pubspec.yaml
+
+```yaml
+dependencies:
+  misarblog: ^5.0.0
+```
+
+Dart SDK `>=3.0.0 <4.0.0`. Pulls in `http ^1.2.0`.
+
+---
+
+## Authentication
+
+Mint a key at <https://www.misar.blog/dashboard/settings/api> and pass it to the
+constructor — `MisarBlogClient(apiKey: ...)`. It travels on
+`Authorization: Bearer`. Keys are prefixed `mbk_`; an OAuth 2.1 access token
+works on the same header. Key management itself is a cookie-session flow and is
+deliberately not exposed here.
+
+The full request/response schema for every route below is published as an
+OpenAPI document at <https://api.misar.io/blog/v1/openapi.json>.
+
+---
+
+## API surface
+
+Nine resource fields hang off `MisarBlogClient`. Note that this SDK folds
+search and recommendations onto `articles`, and profile, plan, trial and upsell
+onto `account`. Every method returns a `Future`.
+
+| Resource | Method | Endpoint | What it does |
+| --- | --- | --- | --- |
+| `articles` | `list` | `GET /articles` | list your articles, filtered by status/visibility/sort |
+| `articles` | `get` | `GET /articles/{slug}` | fetch one article by slug or UUID, full Markdown body |
+| `articles` | `publish` | `POST /articles` | publish or schedule an article from Markdown |
+| `articles` | `update` | `PATCH /articles/{slug}` | update title/body/tags in place; `publish: true` flips a draft live |
+| `articles` | `createDraft` | `POST /drafts` | save a draft without publishing |
+| `articles` | `search` | `GET /search` | full-text search across articles, profiles and tags |
+| `articles` | `recommendations` | `GET /recommendations` | related articles for an article id |
+| `series` | `list` | `GET /series` | list your series |
+| `series` | `create` | `POST /series` | create a series |
+| `series` | `addArticle` | `POST /series/{slug}/articles` | add an article to a series at a position |
+| `reactions` | `get` | `GET /reactions` | reaction counts and the caller's own reactions |
+| `reactions` | `add` | `POST /reactions` | add a `like` / `clap` / `bookmark` |
+| `reactions` | `remove` | `DELETE /reactions` | remove a reaction |
+| `comments` | `list` | `GET /comments` | an article's comment thread, newest first, replies one level deep |
+| `follows` | `status` | `GET /follows` | follower/following counts and whether the key's owner follows |
+| `ai` | `complete` | `POST /ai/complete` | free-form system + user completion |
+| `ai` | `titles` | `POST /ai/titles` | SEO/AEO/GEO title suggestions (`seo` from a keyword, `suggest` from copy) |
+| `images` | `generate` | `POST /images/generate` | AI cover image (`1024x1024`, `1792x1024`, `1024x1792`) |
+| `images` | `upload` | `POST /images/upload` | upload an image to the CDN |
+| `account` | `profile` | `GET /me` | the authenticated creator profile |
+| `account` | `plan` | `GET /plan` | live plan and per-feature quota |
+| `account` | `trialStatus` | `GET /trial` | whether a self-serve trial is active |
+| `account` | `startTrial` | `POST /trial` | start a self-serve trial |
+| `account` | `upsellFunnel` | `GET /upsell-funnel` | per-feature upsell funnel (platform-admin keys only; a creator key gets 403) |
+| `analytics` | `get` | `GET /analytics` | views, gross/net revenue, active subscribers for trailing N days |
+
+---
 
 ## What's in the package
 
-- `MisarBlogClient` — constructed with
-  `MisarBlogClient(apiKey: ..., baseUrl: ..., maxRetries: 3, httpClient: ...)`.
-  Call `close()` when you are done to release the underlying HTTP client.
-- Resource fields on the client: `articles`, `series`, `reactions`, `comments`,
-  `follows`, `ai`, `images`, `account`, `analytics`. Plan, trial and upsell live
-  on `account`.
-- Errors: `MisarBlogError`, `MisarBlogPlanLimitError`, `MisarBlogNetworkError`.
-- `embedUrl(username, slug: ..., theme: ...)` — a top-level function, pure
-  string building for public embeds.
-- Models: `Article`, `ArticleList`, `Series`, `SeriesList`, `Profile`, `Plan`,
-  `PlanUsage`, `Analytics`, `ArticleReactions`, `ReactionResult`, `Comment`,
-  `CommentAuthor`, `CommentsResult`, `FollowStatus`, `TitlesResult`,
-  `TitleSuggestion`, `AiText`, `ImageResult`, `TrialStatus`. Every one wraps the
-  decoded JSON and exposes it as `.raw`, so a field the API adds after this
-  release is still reachable as `model.raw['new_field']`. Getters are nullable
-  because the API omits fields that do not apply.
-- `ArticleStatus` and `ArticleVisibility` enums document the accepted values;
-  the methods themselves take plain `String`s (`status: 'published'`).
+| Item | What it is |
+| --- | --- |
+| `MisarBlogClient` | The client, constructed with `MisarBlogClient(apiKey: ..., baseUrl: ..., maxRetries: 3, httpClient: ...)`. Call `close()` when you are done to release the underlying HTTP client |
+| `MisarBlogClient.request` | Public escape hatch — `request(method, path, {body, query})` returns the decoded JSON for a route this SDK does not wrap yet |
+| `MisarBlogError` | Base error for any non-2xx the SDK did not classify further. Carries `status`, `message`, `body` |
+| `MisarBlogPlanLimitError` | Extends `MisarBlogError`. The subscription blocks the call. Carries `plan`, `upgradeUrl`, `retryAfter`, `upgrade` |
+| `MisarBlogNetworkError` | Extends `MisarBlogError`. The request never reached the API; `status` is `0` |
+| `embedUrl` / `embedBase` | Top-level function and constant — pure string building for public iframe embeds. Unauthenticated and unmetered |
+| Models | `Article`, `ArticleList`, `Series`, `SeriesList`, `Profile`, `Plan`, `PlanUsage`, `Analytics`, `ArticleReactions`, `ReactionResult`, `Comment`, `CommentAuthor`, `CommentsResult`, `FollowStatus`, `TitlesResult`, `TitleSuggestion`, `AiText`, `ImageResult`, `TrialStatus` |
+| Enums | `ArticleStatus` and `ArticleVisibility` document the accepted values; the methods themselves take plain `String`s (`status: 'published'`) |
+
+Every model wraps the decoded JSON and exposes it as `.raw`, so a field the API
+adds after this release is still reachable as `model.raw['new_field']`. Getters
+are nullable because the API omits fields that do not apply.
 
 **Transport.** Built on `package:http`. Base URL
 `https://api.misar.io/blog/v1`; the key goes on `Authorization: Bearer`.
@@ -70,22 +118,11 @@ SSE or WebSocket endpoint accepts an API key, and the API has no webhook
 registration route — `webhook_only` is an article *visibility* value, not a
 subscription.
 
-## Install
+---
 
-```bash
-dart pub add misarblog
-```
+## Examples
 
-Or pin it in `pubspec.yaml`:
-
-```yaml
-dependencies:
-  misarblog: ^1.1.0
-```
-
-Dart SDK 3.0+. Pulls in `http ^1.2.0`.
-
-## Quick start
+### Authenticate and publish
 
 ```dart
 import 'dart:io';
@@ -107,12 +144,6 @@ Future<void> main() async {
   blog.close();
 }
 ```
-
-Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
-`mbk_`; an OAuth 2.1 access token works on the same header. Key management
-itself is a cookie-session flow and is deliberately not exposed here.
-
-## Primary functions
 
 ### Publish (or schedule) an article
 
@@ -234,6 +265,8 @@ print(embedUrl('gulshan', slug: 'hello-misar', theme: 'dark'));
 
 Omit `slug` to embed the whole profile.
 
+---
+
 ## Errors
 
 Every failure throws. `MisarBlogPlanLimitError` and `MisarBlogNetworkError` both
@@ -262,13 +295,15 @@ try {
 The 403 scope details (`required_scope`, `granted_scopes`) are not promoted to
 named fields in this SDK — read them off `e.body`.
 
+---
+
 ## Links
 
-- Misar.Blog — <https://misar.blog>
-- API docs — <https://docs.misar.io/blog>
-- OpenAPI spec — <https://api.misar.io/blog/v1/openapi.json>
-- Mint an API key — <https://www.misar.blog/dashboard/settings/api>
+- Website — https://www.misar.blog
+- App — https://www.misar.blog
+- Parent — https://misar.io
+- Documentation — https://docs.misar.io/blog
+- Source — https://github.com/Misar-AI/misarblog-sdks
+- pub.dev — https://pub.dev/packages/misarblog
 
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT © [Misar AI](https://misar.io)

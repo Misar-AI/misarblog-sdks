@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "misarblog"
-version = "1.1.0"
+version = "5.0.0"
 description = "Sync + async client for misar.blog, a hosted blogging platform: publish and schedule Markdown articles, manage drafts and series, read comments, reactions, follows and analytics, generate SEO titles, completions and AI cover images, and search."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -44,9 +44,10 @@ classifiers = [
 dependencies = ["httpx>=0.27"]
 
 [project.urls]
-Homepage = "https://misar.blog"
+Homepage = "https://www.misar.blog"
 Documentation = "https://docs.misar.io/blog"
 Repository = "https://github.com/Misar-AI/misarblog-sdks"
+Issues = "https://github.com/Misar-AI/misarblog-sdks/issues"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "build", "twine", "ruff"]

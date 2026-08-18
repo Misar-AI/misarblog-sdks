@@ -97,4 +97,20 @@ RSpec.describe MisarBlog::Client do
     stub_request(:get, "#{base_url}/me").to_raise(SocketError.new("refused"))
     expect { client.account.profile }.to raise_error(MisarBlog::NetworkError)
   end
+
+  # Regression: parse_response short-circuited on an empty body *before* looking at
+  # the status, so an error with nothing in it returned {} and read as success. A
+  # bare 401 and anything a proxy strips both arrive this way.
+  [401, 403, 404].each do |code|
+    it "raises on #{code} even when the body is empty" do
+      stub_request(:get, "#{base_url}/me").to_return(status: code, body: "")
+      expect { client.account.profile }
+        .to raise_error(MisarBlog::ApiError) { |e| expect(e.status).to eq(code) }
+    end
+  end
+
+  it "still returns {} for a successful empty body" do
+    stub_request(:get, "#{base_url}/me").to_return(status: 204, body: "")
+    expect(client.send(:request, :get, "/me")).to eq({})
+  end
 end

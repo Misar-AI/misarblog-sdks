@@ -1,56 +1,104 @@
 # Misar.Blog TypeScript SDK
 
-[Misar.Blog](https://misar.blog) is a hosted blogging platform. Authors write in
-Markdown, publish or schedule articles, group them into series, and get
-comments, reactions, follows, subscriber- and paid-gated posts, AI writing
-helpers and per-account analytics. This package is the official
-TypeScript/JavaScript client for its developer API at
-`https://api.misar.io/blog/v1` — for anyone automating publishing, syncing a
-blog out of CI or another CMS, or building a reader, dashboard or integration
-on top of a Misar.Blog account.
+> Typed client for the Misar.Blog developer API — publish, schedule and manage Markdown articles from TypeScript or JavaScript.
 
-## Features
+[![npm](https://img.shields.io/npm/v/%40misarblog%2Fsdk)](https://www.npmjs.com/package/@misarblog/sdk) [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-The API surface this SDK covers, in full:
+**11 resource accessors · 25 operations · ESM, CJS and a browser IIFE bundle**
 
-- **Articles** — list and filter by status, fetch by slug or UUID, publish or
-  schedule from Markdown, update in place, and save drafts.
-- **Series** — list, create, and add an article at a position.
-- **Reactions** — `like` / `clap` / `bookmark` counts plus the caller's own
-  reactions; add and remove.
-- **Comments** — read an article's thread, newest first, replies nested one
-  level deep.
-- **Follows** — a profile's follower/following counts and whether the key's
-  owner follows it.
-- **AI** — SEO/AEO/GEO title suggestions (`suggest` from existing copy, `seo`
-  from a keyword) and free-form system + user completions.
-- **Images** — AI cover-image generation (`1024x1024`, `1792x1024`,
-  `1024x1792`) and CDN upload.
-- **Discovery** — full-text search across articles, profiles and tags, and
-  related-article recommendations.
-- **Account** — the authenticated profile, an analytics summary (views,
-  gross/net revenue, active subscribers), live plan and quota, the self-serve
-  trial, and the upsell funnel (platform-admin keys only).
-- **Embeds** — build a public iframe URL, or mount an iframe, for a profile or
-  a single article. Unauthenticated and unmetered.
+Works against the Misar.Blog developer API at `https://api.misar.io/blog/v1` — for
+anyone automating publishing, syncing a blog out of CI or another CMS, or building
+a reader, dashboard or integration on top of a Misar.Blog account.
+
+---
+
+## Install
+
+### npm
+
+```bash
+npm install @misarblog/sdk
+```
+
+### pnpm
+
+```bash
+pnpm install @misarblog/sdk
+```
+
+### yarn
+
+```bash
+yarn add @misarblog/sdk
+```
+
+### bun
+
+```bash
+bun add @misarblog/sdk
+```
+
+Requires Node 18+ (for global `fetch`), or any modern browser.
+
+---
+
+## Authentication
+
+Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
+`mbk_` and go on the `Authorization: Bearer` header; an OAuth 2.1 access token
+works on the same header. Key management itself is a cookie-session flow and is
+deliberately not exposed here.
+
+Feature access and throughput follow the subscription attached to the key. The
+machine-readable contract for every route below is the OpenAPI spec at
+<https://api.misar.io/blog/v1/openapi.json>.
+
+---
+
+## API surface
+
+| Resource | Method | Endpoint | What it does |
+| --- | --- | --- | --- |
+| `articles` | `list` | `GET /articles` | list your articles, filtered by status/visibility/sort |
+| `articles` | `get` | `GET /articles/{slug}` | fetch one article by slug or UUID, full Markdown body |
+| `articles` | `create` | `POST /articles` | publish or schedule an article from Markdown |
+| `articles` | `update` | `PATCH /articles/{slug}` | update title/body/tags in place; `publish: true` flips a draft live |
+| `articles` | `createDraft` | `POST /drafts` | save a draft without publishing |
+| `articles` | `search` | `GET /search` | full-text search across articles, profiles and tags |
+| `articles` | `recommendations` | `GET /recommendations` | related articles for an article id |
+| `series` | `list` | `GET /series` | list your series |
+| `series` | `create` | `POST /series` | create a series |
+| `series` | `addArticle` | `POST /series/{slug}/articles` | add an article to a series at a position |
+| `reactions` | `get` | `GET /reactions` | reaction counts and the caller's own reactions |
+| `reactions` | `add` | `POST /reactions` | add a `like` / `clap` / `bookmark` |
+| `reactions` | `remove` | `DELETE /reactions` | remove a reaction |
+| `comments` | `list` | `GET /comments` | an article's comment thread, newest first, replies one level deep |
+| `follows` | `status` | `GET /follows` | follower/following counts and whether the key's owner follows |
+| `ai` | `complete` | `POST /ai/complete` | free-form system + user completion |
+| `ai` | `titles` | `POST /ai/titles` | SEO/AEO/GEO title suggestions (`seo` from a keyword, `suggest` from copy) |
+| `images` | `generate` | `POST /images/generate` | AI cover image (`1024x1024`, `1792x1024`, `1024x1792`) |
+| `images` | `upload` | `POST /images/upload` | upload an image to the CDN |
+| `profiles` | `me` | `GET /me` | the authenticated creator profile |
+| `analytics` | `summary` | `GET /analytics` | views, gross/net revenue, active subscribers for trailing N days |
+| `plan` | `get` | `GET /plan` | live plan and per-feature quota |
+| `plan` | `trialStatus` | `GET /trial` | whether a self-serve trial is active |
+| `plan` | `startTrial` | `POST /trial` | start a self-serve trial |
+| `upsell` | `funnel` | `GET /upsell-funnel` | per-feature upsell funnel (platform-admin keys only; a creator key gets 403) |
 
 That is all 25 key-authenticated operations.
 
+---
+
 ## What's in the package
 
-- `MisarBlog` — the client. Constructed with `{ apiKey, baseUrl?, maxRetries?,
-  timeoutMs?, fetch? }`.
-- Resource accessors on the client: `articles`, `series`, `reactions`,
-  `comments`, `follows`, `ai`, `images`, `profiles`, `analytics`, `plan`,
-  `upsell`.
-- `BlogApiClient` — the raw transport (`get` / `post` / `patch` / `delete`),
-  exported for calls this SDK does not wrap yet.
-- Errors: `BlogApiError`, `PlanLimitError`, `NetworkError`.
-- `embed(container, options)` and `embedUrl(options)` — DOM helpers for public
-  embeds; `embed` needs a browser, `embedUrl` is pure string building.
-- Full type declarations for every request and response shape (`Article`,
-  `ArticleSummary`, `Comment`, `Series`, `Profile`, `AnalyticsSummary`,
-  `Plan`, …), shipped as ESM, CJS and an IIFE browser bundle.
+| Item | What it is |
+| --- | --- |
+| `MisarBlog` | The client. Constructed with `{ apiKey, baseUrl?, maxRetries?, timeoutMs?, fetch? }`. |
+| Resource accessors | `articles`, `series`, `reactions`, `comments`, `follows`, `ai`, `images`, `profiles`, `analytics`, `plan`, `upsell` — the 11 groups in the table above. |
+| `BlogApiClient` | The raw transport (`get` / `post` / `patch` / `delete`), exported for calls this SDK does not wrap yet. |
+| `BlogApiError`, `PlanLimitError`, `NetworkError` | The three error types; all extend `Error` and carry `status` and the decoded `body`. |
+| `embed(container, options)`, `embedUrl(options)` | DOM helpers for public embeds; `embed` needs a browser, `embedUrl` is pure string building. Unauthenticated and unmetered. |
+| Type declarations | Every request and response shape (`Article`, `ArticleSummary`, `Comment`, `Series`, `Profile`, `AnalyticsSummary`, `Plan`, …), shipped as ESM, CJS and an IIFE browser bundle. |
 
 **Transport.** Base URL `https://api.misar.io/blog/v1`; the key goes on
 `Authorization: Bearer`. Statuses 429/500/502/503/504 and transport failures
@@ -63,15 +111,11 @@ SSE or WebSocket endpoint accepts an API key, and the API has no webhook
 registration route — `webhook_only` is an article *visibility* value, not a
 subscription.
 
-## Install
+---
 
-```bash
-npm install @misarblog/sdk
-```
+## Examples
 
-Requires Node 18+ (for global `fetch`), or any modern browser.
-
-## Quick start
+### Authenticate and publish
 
 ```ts
 import { MisarBlog, PlanLimitError } from "@misarblog/sdk";
@@ -88,12 +132,6 @@ const article = await blog.articles.create({
 });
 console.log(article.url);
 ```
-
-Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
-`mbk_`; an OAuth 2.1 access token works on the same header. Key management
-itself is a cookie-session flow and is deliberately not exposed here.
-
-## Primary functions
 
 ### Publish (or schedule) an article
 
@@ -197,6 +235,8 @@ const { destroy } = embed(document.querySelector("#slot")!, {
 });
 ```
 
+---
+
 ## Errors
 
 Every failure throws. All three types extend `Error` and carry `status` and the
@@ -228,13 +268,15 @@ try {
 `PlanLimitError` extends `BlogApiError`, so order your `instanceof` checks
 narrowest-first.
 
+---
+
 ## Links
 
-- Misar.Blog — <https://misar.blog>
-- API docs — <https://docs.misar.io/blog>
-- OpenAPI spec — <https://api.misar.io/blog/v1/openapi.json>
-- Mint an API key — <https://www.misar.blog/dashboard/settings/api>
+- Website — https://www.misar.blog
+- App — https://www.misar.blog
+- Parent — https://misar.io
+- Documentation — https://docs.misar.io/blog
+- Source — https://github.com/Misar-AI/misarblog-sdks
+- npm — https://www.npmjs.com/package/@misarblog/sdk
 
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT © [Misar AI](https://misar.io)

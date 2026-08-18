@@ -1,58 +1,105 @@
 # Misar.Blog Python SDK
 
-[Misar.Blog](https://misar.blog) is a hosted blogging platform. Authors write in
-Markdown, publish or schedule articles, group them into series, and get
-comments, reactions, follows, subscriber- and paid-gated posts, AI writing
-helpers and per-account analytics. This package is the official Python client
-for its developer API at `https://api.misar.io/blog/v1` — for anyone automating
-publishing, syncing a blog out of CI or another CMS, or building a reader,
-dashboard or integration on top of a Misar.Blog account.
+> Sync and async client for the Misar.Blog developer API — publish, schedule and manage Markdown articles from Python.
 
-## Features
+[![PyPI](https://img.shields.io/pypi/v/misarblog)](https://pypi.org/project/misarblog/) [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-The API surface this SDK covers, in full:
+**12 resource attributes · 25 operations · sync and async from one client**
 
-- **Articles** — list and filter by status, visibility or webhook-only, fetch by
-  slug or UUID, publish or schedule from Markdown, update in place, and save
-  drafts.
-- **Series** — list, create, and add an article at a position.
-- **Reactions** — `like` / `clap` / `bookmark` counts plus the caller's own
-  reactions; add and remove.
-- **Comments** — read an article's thread, newest first, replies nested one
-  level deep.
-- **Follows** — a profile's follower/following counts and whether the key's
-  owner follows it.
-- **AI** — SEO/AEO/GEO title suggestions (`suggest` from existing copy, `seo`
-  from a keyword) and free-form system + user completions.
-- **Images** — AI cover-image generation (`1024x1024`, `1792x1024`,
-  `1024x1792`) and multipart CDN upload.
-- **Discovery** — full-text search across articles, profiles and tags, and
-  related-article recommendations.
-- **Account** — the authenticated profile, an analytics summary (views,
-  gross/net revenue, active subscribers), live plan and quota, the self-serve
-  trial, and the upsell funnel (platform-admin keys only).
-- **Embeds** — build a public iframe URL for a profile or a single article.
-  Unauthenticated and unmetered.
+Works against the Misar.Blog developer API at `https://api.misar.io/blog/v1` — for
+anyone automating publishing, syncing a blog out of CI or another CMS, or building
+a reader, dashboard or integration on top of a Misar.Blog account.
 
-That is all 25 key-authenticated operations.
+---
+
+## Install
+
+### pip
+
+```bash
+pip install misarblog
+```
+
+### uv
+
+```bash
+uv add misarblog
+```
+
+### poetry
+
+```bash
+poetry add misarblog
+```
+
+Python 3.9+. Pulls in `httpx>=0.27`.
+
+---
+
+## Authentication
+
+Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
+`mbk_` and go on the `Authorization: Bearer` header; an OAuth 2.1 access token
+works on the same header. Key management itself is a cookie-session flow and is
+deliberately not exposed here.
+
+Feature access and throughput follow the subscription attached to the key. The
+machine-readable contract for every route below is the OpenAPI spec at
+<https://api.misar.io/blog/v1/openapi.json>.
+
+---
+
+## API surface
+
+Every sync method listed here has an `a`-prefixed async twin — the rule is a
+literal `a` in front of the sync name, so `list` / `alist`, `publish` /
+`apublish`, `create_draft` / `acreate_draft`, `add_article` / `aadd_article`,
+and so on for all 25. Both halves share one client.
+
+| Resource | Method | Endpoint | What it does |
+| --- | --- | --- | --- |
+| `articles` | `list` | `GET /articles` | list your articles, filtered by status/visibility/sort |
+| `articles` | `get` | `GET /articles/{slug}` | fetch one article by slug or UUID, full Markdown body |
+| `articles` | `publish` | `POST /articles` | publish or schedule an article from Markdown |
+| `articles` | `update` | `PATCH /articles/{slug}` | update title/body/tags in place; `publish: true` flips a draft live |
+| `articles` | `create_draft` | `POST /drafts` | save a draft without publishing |
+| `articles` | `search` | `GET /search` | full-text search across articles, profiles and tags |
+| `articles` | `recommendations` | `GET /recommendations` | related articles for an article id |
+| `series` | `list` | `GET /series` | list your series |
+| `series` | `create` | `POST /series` | create a series |
+| `series` | `add_article` | `POST /series/{slug}/articles` | add an article to a series at a position |
+| `reactions` | `get` | `GET /reactions` | reaction counts and the caller's own reactions |
+| `reactions` | `add` | `POST /reactions` | add a `like` / `clap` / `bookmark` |
+| `reactions` | `remove` | `DELETE /reactions` | remove a reaction |
+| `comments` | `list` | `GET /comments` | an article's comment thread, newest first, replies one level deep |
+| `follows` | `status` | `GET /follows` | follower/following counts and whether the key's owner follows |
+| `ai` | `complete` | `POST /ai/complete` | free-form system + user completion |
+| `ai` | `titles` | `POST /ai/titles` | SEO/AEO/GEO title suggestions (`seo` from a keyword, `suggest` from copy) |
+| `images` | `generate` | `POST /images/generate` | AI cover image (`1024x1024`, `1792x1024`, `1024x1792`) |
+| `images` | `upload` | `POST /images/upload` | upload an image to the CDN |
+| `me` | `get` | `GET /me` | the authenticated creator profile |
+| `analytics` | `summary` | `GET /analytics` | views, gross/net revenue, active subscribers for trailing N days |
+| `plan` | `get` | `GET /plan` | live plan and per-feature quota |
+| `trial` | `status` | `GET /trial` | whether a self-serve trial is active |
+| `trial` | `start` | `POST /trial` | start a self-serve trial |
+| `upsell_funnel` | `get` | `GET /upsell-funnel` | per-feature upsell funnel (platform-admin keys only; a creator key gets 403) |
+
+That is all 25 key-authenticated operations — 50 callables counting the async
+twins.
+
+---
 
 ## What's in the package
 
-- `MisarBlogClient` — the client, both sync and async in one object.
-  `MisarBlogClient(api_key, base_url=..., max_retries=3, timeout=30.0)`.
-- Resource attributes: `articles`, `series`, `reactions`, `comments`,
-  `follows`, `ai`, `images`, `me`, `analytics`, `plan`, `trial`,
-  `upsell_funnel`.
-- **Every method has an `a`-prefixed async twin** — `list` / `alist`,
-  `publish` / `apublish`, `get` / `aget`, and so on. Both share one client;
-  close with `close()` / `await aclose()`, or use `with` / `async with`.
-- Errors: `MisarBlogError`, `MisarBlogPlanLimitError`, `MisarBlogNetworkError`.
-- `embed_url(username, slug=None, theme="auto")` — pure string building for
-  public embeds.
-- `misarblog.models` — `TypedDict` shapes and `Literal` enums (`ArticleStatus`,
-  `ArticleVisibility`, `ReactionType`, `ImageSize`, `SearchSort`, …). Responses
-  are plain `dict` at runtime; the models are for static typing.
-- `DEFAULT_BASE_URL` for overriding or asserting the endpoint.
+| Item | What it is |
+| --- | --- |
+| `MisarBlogClient` | The client, both sync and async in one object. `MisarBlogClient(api_key, base_url=..., max_retries=3, timeout=30.0)`. |
+| Resource attributes | `articles`, `series`, `reactions`, `comments`, `follows`, `ai`, `images`, `me`, `analytics`, `plan`, `trial`, `upsell_funnel` — the 12 groups in the table above. |
+| Async twins | Every method has an `a`-prefixed async form. Close with `close()` / `await aclose()`, or use `with` / `async with`. |
+| `MisarBlogError`, `MisarBlogPlanLimitError`, `MisarBlogNetworkError` | The three error types; the latter two subclass the first. |
+| `embed_url(username, slug=None, theme="auto")` | Pure string building for public embeds. Unauthenticated and unmetered. |
+| `misarblog.models` | `TypedDict` shapes and `Literal` enums (`ArticleStatus`, `ArticleVisibility`, `ReactionType`, `ImageSize`, `SearchSort`, …). Responses are plain `dict` at runtime; the models are for static typing. |
+| `DEFAULT_BASE_URL` | The endpoint constant, for overriding or asserting against. |
 
 **Transport.** Built on `httpx`. Base URL `https://api.misar.io/blog/v1`; the
 key goes on `Authorization: Bearer`. Statuses 429/500/502/503/504 and transport
@@ -66,15 +113,11 @@ SSE or WebSocket endpoint accepts an API key, and the API has no webhook
 registration route — `webhook_only` is an article *visibility* value, not a
 subscription.
 
-## Install
+---
 
-```bash
-pip install misarblog
-```
+## Examples
 
-Python 3.9+. Pulls in `httpx>=0.27`.
-
-## Quick start
+### Authenticate and publish
 
 ```python
 import os
@@ -95,7 +138,7 @@ print(article["url"])
 blog.close()
 ```
 
-Async, same surface:
+### The same, async
 
 ```python
 import asyncio
@@ -109,12 +152,6 @@ async def main():
 
 asyncio.run(main())
 ```
-
-Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
-`mbk_`; an OAuth 2.1 access token works on the same header. Key management
-itself is a cookie-session flow and is deliberately not exposed here.
-
-## Primary functions
 
 ### Publish (or schedule) an article
 
@@ -222,6 +259,8 @@ from misarblog import embed_url
 print(embed_url("gulshan", slug="hello-misar", theme="dark"))
 ```
 
+---
+
 ## Errors
 
 Every failure raises. All three types derive from `MisarBlogError`, so a single
@@ -250,13 +289,15 @@ except MisarBlogError as err:
 `MisarBlogPlanLimitError` and `MisarBlogNetworkError` both subclass
 `MisarBlogError`, so order your `except` clauses narrowest-first.
 
+---
+
 ## Links
 
-- Misar.Blog — <https://misar.blog>
-- API docs — <https://docs.misar.io/blog>
-- OpenAPI spec — <https://api.misar.io/blog/v1/openapi.json>
-- Mint an API key — <https://www.misar.blog/dashboard/settings/api>
+- Website — https://www.misar.blog
+- App — https://www.misar.blog
+- Parent — https://misar.io
+- Documentation — https://docs.misar.io/blog
+- Source — https://github.com/Misar-AI/misarblog-sdks
+- PyPI — https://pypi.org/project/misarblog/
 
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT © [Misar AI](https://misar.io)

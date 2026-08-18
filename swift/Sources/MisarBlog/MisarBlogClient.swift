@@ -1,3 +1,19 @@
+//
+//  MisarBlogClient.swift
+//  MisarBlog — the official Swift client for the Misar.Blog developer API.
+//
+//  SwiftPM carries no metadata fields beyond name/platforms/products/targets,
+//  so the package's provenance lives here rather than in Package.swift.
+//
+//  Product:    MisarBlog (library)
+//  Homepage:   https://www.misar.blog
+//  Docs:       https://docs.misar.io/blog
+//  Source:     https://github.com/Misar-AI/misarblog-sdks
+//  Issues:     https://github.com/Misar-AI/misarblog-sdks/issues
+//  Author:     Misar AI <hello@misar.io> — https://misar.io
+//  Licence:    MIT
+//
+
 import Foundation
 
 #if canImport(FoundationNetworking)

@@ -18,13 +18,13 @@ full.
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("blog.misar:misarblog-kotlin:1.1.0")
+implementation("blog.misar:misarblog-kotlin:5.0.0")
 ```
 
 ### Gradle (Groovy)
 
 ```groovy
-implementation 'blog.misar:misarblog-kotlin:1.1.0'
+implementation 'blog.misar:misarblog-kotlin:5.0.0'
 ```
 
 ### Maven
@@ -33,7 +33,7 @@ implementation 'blog.misar:misarblog-kotlin:1.1.0'
 <dependency>
     <groupId>blog.misar</groupId>
     <artifactId>misarblog-kotlin</artifactId>
-    <version>1.1.0</version>
+    <version>5.0.0</version>
 </dependency>
 ```
 

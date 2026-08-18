@@ -1,59 +1,96 @@
 # Misar.Blog Rust SDK
 
-[Misar.Blog](https://misar.blog) is a hosted blogging platform. Authors write in
-Markdown, publish or schedule articles, group them into series, and get
-comments, reactions, follows, subscriber- and paid-gated posts, AI writing
-helpers and per-account analytics. This crate is the official Rust client for
-its developer API at `https://api.misar.io/blog/v1` — for anyone automating
-publishing, syncing a blog out of CI or another CMS, or building a reader,
-dashboard or integration on top of a Misar.Blog account.
+> The official Rust client for the Misar.Blog developer API.
 
-## Features
+[![crates.io](https://img.shields.io/crates/v/misarblog)](https://crates.io/crates/misarblog) [![Rust](https://img.shields.io/badge/edition-2021-orange)](https://www.rust-lang.org) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-The API surface this crate covers, in full:
+**10 resource groups · 25 operations · async on tokio + reqwest**
 
-- **Articles** — list and filter by status or visibility, fetch by slug or
-  UUID, publish or schedule from Markdown, update in place, and save drafts.
-- **Series** — list, create, and add an article at a position.
-- **Reactions** — `like` / `clap` / `bookmark` counts plus the caller's own
-  reactions; add and remove.
-- **Comments** — read an article's thread, newest first, replies nested one
-  level deep.
-- **Follows** — a profile's follower/following counts and whether the key's
-  owner follows it.
-- **AI** — SEO/AEO/GEO title suggestions (`suggest` from existing copy, `seo`
-  from a keyword) and free-form system + user completions.
-- **Images** — AI cover-image generation (`1024x1024`, `1792x1024`,
-  `1024x1792`) and CDN upload.
-- **Discovery** — full-text search across articles, profiles and tags, and
-  related-article recommendations.
-- **Account** — the authenticated profile, an analytics summary (views,
-  gross/net revenue, active subscribers), live plan and quota, the self-serve
-  trial, and the upsell funnel (platform-admin keys only).
-- **Embeds** — build a public iframe URL for a profile or a single article.
-  Unauthenticated and unmetered.
+Works with any async Rust program that needs to drive a
+[Misar.Blog](https://www.misar.blog) account: automating publishing, syncing a
+blog out of CI or another CMS, or building a reader, dashboard or integration on
+top of the API at `https://api.misar.io/blog/v1`.
 
-That is all 25 key-authenticated operations.
+---
 
-## What's in the crate
+## Install
 
-- `MisarBlog` — the client. `MisarBlog::new(api_key)`, then
-  `.with_base_url(url)` and `.with_max_retries(n)` to reconfigure.
-- Resource fields on the client: `articles`, `series`, `reactions`, `ai`,
-  `images`, `account`, `analytics`, `plan`, `comments`, `follows`. Series/trial
-  live under `plan` (`trial_status`, `start_trial`) and the upsell funnel under
-  `analytics` (`upsell_funnel`).
-- `misarblog::types` — `Serialize` request bodies (`PublishArticleRequest`,
-  `CreateDraftRequest`, `UpdateArticleRequest`, `CreateSeriesRequest`,
-  `AddToSeriesRequest`, `AddReactionRequest`, `AiCompleteRequest`,
-  `GenerateTitlesRequest`, `GenerateImageRequest`, `StartTrialRequest`,
-  `ListArticlesParams`, `SearchParams`) and `Deserialize` responses (`Article`,
-  `Series`, `Comment`, `CommentsResult`, `FollowStatus`).
-- `errors::BlogApiError` — one enum with `Api`, `PlanLimit`, `Network` and
-  `Json` variants, plus `.status()` and `.upgrade_url()` helpers.
-- `misarblog::embed_url(username, slug, theme)` — a free function, independent
-  of the client.
-- `DEFAULT_BASE_URL`.
+```toml
+[dependencies]
+misarblog = "5.0"
+tokio = { version = "1", features = ["full"] }
+```
+
+Or from the command line:
+
+```bash
+cargo add misarblog tokio -F tokio/full
+```
+
+Edition 2021.
+
+---
+
+## Authentication
+
+Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
+`mbk_`; an OAuth 2.1 access token works on the same header. Key management
+itself is a cookie-session flow and is deliberately not exposed here.
+
+Pass the key to `MisarBlog::new`; it is sent as `Authorization: Bearer`. See the
+first example below. The full request/response contract
+is published as an OpenAPI document at
+<https://api.misar.io/blog/v1/openapi.json>.
+
+---
+
+## API surface
+
+Every method is `async`.
+
+| Resource | Method | Endpoint | What it does |
+| --- | --- | --- | --- |
+| `articles` | `list` | `GET /articles` | list your articles, filtered by status/visibility/sort |
+| `articles` | `get` | `GET /articles/{slug}` | fetch one article by slug or UUID, full Markdown body |
+| `articles` | `publish` | `POST /articles` | publish or schedule an article from Markdown |
+| `articles` | `update` | `PATCH /articles/{slug}` | update title/body/tags in place; `publish: true` flips a draft live |
+| `articles` | `create_draft` | `POST /drafts` | save a draft without publishing |
+| `articles` | `search` | `GET /search` | full-text search across articles, profiles and tags |
+| `articles` | `recommendations` | `GET /recommendations` | related articles for an article id |
+| `series` | `list` | `GET /series` | list your series |
+| `series` | `create` | `POST /series` | create a series |
+| `series` | `add_article` | `POST /series/{slug}/articles` | add an article to a series at a position |
+| `reactions` | `get` | `GET /reactions` | reaction counts and the caller's own reactions |
+| `reactions` | `add` | `POST /reactions` | add a `like` / `clap` / `bookmark` |
+| `reactions` | `remove` | `DELETE /reactions` | remove a reaction |
+| `comments` | `list` | `GET /comments` | an article's comment thread, newest first, replies one level deep |
+| `follows` | `status` | `GET /follows` | follower/following counts and whether the key's owner follows |
+| `ai` | `complete` | `POST /ai/complete` | free-form system + user completion |
+| `ai` | `titles` | `POST /ai/titles` | SEO/AEO/GEO title suggestions (`seo` from a keyword, `suggest` from copy) |
+| `images` | `generate` | `POST /images/generate` | AI cover image (`1024x1024`, `1792x1024`, `1024x1792`) |
+| `images` | `upload` | `POST /images/upload` | upload an image to the CDN |
+| `account` | `me` | `GET /me` | the authenticated creator profile |
+| `analytics` | `summary` | `GET /analytics` | views, gross/net revenue, active subscribers for trailing N days |
+| `analytics` | `upsell_funnel` | `GET /upsell-funnel` | per-feature upsell funnel (platform-admin keys only; a creator key gets 403) |
+| `plan` | `get` | `GET /plan` | live plan and per-feature quota |
+| `plan` | `trial_status` | `GET /trial` | whether a self-serve trial is active |
+| `plan` | `start_trial` | `POST /trial` | start a self-serve trial |
+
+Note the two groupings that differ from the other Misar.Blog SDKs: the trial
+lives under `plan` (`trial_status`, `start_trial`) and the upsell funnel under
+`analytics` (`upsell_funnel`).
+
+---
+
+## What's in the package
+
+| Item | What it is |
+| --- | --- |
+| `MisarBlog` | The client. `MisarBlog::new(api_key)`, then `.with_base_url(url)` and `.with_max_retries(n)` to reconfigure. Resource fields: `articles`, `series`, `reactions`, `ai`, `images`, `account`, `analytics`, `plan`, `comments`, `follows`. |
+| `misarblog::types` | `Serialize` request bodies (`PublishArticleRequest`, `CreateDraftRequest`, `UpdateArticleRequest`, `CreateSeriesRequest`, `AddToSeriesRequest`, `AddReactionRequest`, `AiCompleteRequest`, `GenerateTitlesRequest`, `GenerateImageRequest`, `StartTrialRequest`, `ListArticlesParams`, `SearchParams`) and `Deserialize` responses (`Article`, `Series`, `Comment`, `CommentsResult`, `FollowStatus`). |
+| `errors::BlogApiError` | One enum with `Api`, `PlanLimit`, `Network` and `Json` variants, plus `.status()` and `.upgrade_url()` helpers. |
+| `misarblog::embed_url(username, slug, theme)` | A free function, independent of the client. |
+| `DEFAULT_BASE_URL` | The API base the client uses unless you override it. |
 
 **Typed vs. free-form.** Endpoints with a stable schema — `articles.get`,
 `publish`, `update`, `create_draft`, `series.create`, `comments.list`,
@@ -72,17 +109,11 @@ SSE or WebSocket endpoint accepts an API key, and the API has no webhook
 registration route — `webhook_only` is an article *visibility* value, not a
 subscription.
 
-## Install
+---
 
-```toml
-[dependencies]
-misarblog = "1.1"
-tokio = { version = "1", features = ["full"] }
-```
+## Examples
 
-Or `cargo add misarblog tokio -F tokio/full`. Edition 2021.
-
-## Quick start
+### Authenticate and publish
 
 ```rust
 use misarblog::{types, BlogApiError, MisarBlog};
@@ -108,12 +139,6 @@ async fn main() -> Result<(), BlogApiError> {
     Ok(())
 }
 ```
-
-Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
-`mbk_`; an OAuth 2.1 access token works on the same header. Key management
-itself is a cookie-session flow and is deliberately not exposed here.
-
-## Primary functions
 
 ### Publish (or schedule) an article
 
@@ -254,6 +279,8 @@ let url = misarblog::embed_url("gulshan", Some("hello-misar"), "dark");
 // https://misar.blog/gulshan/hello-misar/embed?theme=dark
 ```
 
+---
+
 ## Errors
 
 Every fallible call returns `Result<_, BlogApiError>`. One enum covers all four
@@ -281,15 +308,18 @@ match blog.ai.complete(&types::AiCompleteRequest {
 ```
 
 `e.status()` returns `0` for `Network` and `Json`; `e.upgrade_url()` returns
-`Some(_)` only for `PlanLimit`.
+`Some(_)` only for `PlanLimit`. If a failure lands in the wrong variant, file it
+at <https://github.com/Misar-AI/misarblog-sdks/issues>.
+
+---
 
 ## Links
 
-- Misar.Blog — <https://misar.blog>
-- API docs — <https://docs.misar.io/blog>
-- OpenAPI spec — <https://api.misar.io/blog/v1/openapi.json>
-- Mint an API key — <https://www.misar.blog/dashboard/settings/api>
+- Website — https://www.misar.blog
+- App — https://www.misar.blog
+- Parent — https://misar.io
+- Documentation — https://docs.misar.io/blog
+- Source — https://github.com/Misar-AI/misarblog-sdks
+- crates.io — https://crates.io/crates/misarblog
 
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT © [Misar AI](https://misar.io)

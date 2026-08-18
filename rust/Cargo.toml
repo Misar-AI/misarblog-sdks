@@ -1,13 +1,13 @@
 [package]
 name = "misarblog"
-version = "1.1.0"
+version = "5.0.0"
 edition = "2021"
 description = "Async client for misar.blog, a hosted blogging platform: publish and schedule Markdown articles, manage drafts and series, read comments, reactions, follows and analytics, generate SEO titles, completions and AI cover images, and search. Typed errors, retry with back-off."
 license = "MIT"
 authors = ["Misar AI <hello@misar.io>"]
-homepage = "https://misar.blog"
+homepage = "https://www.misar.blog"
 repository = "https://github.com/Misar-AI/misarblog-sdks"
-documentation = "https://docs.rs/misarblog"
+documentation = "https://docs.misar.io/blog"
 readme = "README.md"
 keywords = ["blog", "blogging", "publishing", "cms", "markdown"]
 categories = ["api-bindings", "web-programming::http-client"]

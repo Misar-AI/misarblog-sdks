@@ -158,7 +158,10 @@ class Client
                 continue;
             }
 
-            if ($status === 204 || $body === '' || $body === false) {
+            // Only a *successful* empty body means "no content". An error with an
+            // empty body — a bare 401, or anything a proxy stripped — must still
+            // raise, or the caller reads a failure as an empty result set.
+            if ($status < 400 && ($status === 204 || $body === '' || $body === false)) {
                 return [];
             }
 
@@ -174,6 +177,11 @@ class Client
                     $grantedScopes = is_array($decoded['granted_scopes'] ?? null) ? $decoded['granted_scopes'] : [];
                 } else {
                     $message = (string) $body;
+                }
+                // A stripped body leaves nothing to report; name the status so the
+                // exception still says something useful.
+                if ($message === '') {
+                    $message = "HTTP {$status}";
                 }
                 if (is_array($decoded) && ($decoded['code'] ?? null) === 'plan_limit_exceeded') {
                     $offer = is_array($decoded['upgrade'] ?? null) ? $decoded['upgrade'] : [];

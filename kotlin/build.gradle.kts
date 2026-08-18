@@ -14,7 +14,7 @@ plugins {
 // Central — a mismatch here silently produces artifacts under the wrong
 // coordinates and Central rejects the bundle.
 group = "blog.misar"
-version = "1.1.0"
+version = "5.0.0"
 
 repositories {
     mavenCentral()

@@ -1,67 +1,113 @@
 # Misar.Blog Swift SDK
 
-[Misar.Blog](https://misar.blog) is a hosted blogging platform. Authors write in
-Markdown, publish or schedule articles, group them into series, and get
-comments, reactions, follows, subscriber- and paid-gated posts, AI writing
-helpers and per-account analytics. This package is the official Swift client for
-its developer API at `https://api.misar.io/blog/v1` — for anyone automating
-publishing, syncing a blog out of CI or another CMS, or building a reader,
-dashboard or iOS/macOS app on top of a Misar.Blog account.
+> Publish, schedule and manage a Misar.Blog account from Swift async/await.
 
-## Features
+[![Swift](https://img.shields.io/badge/swift-5.9%2B-orange)](https://swift.org) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-The API surface this SDK covers, in full:
+**14 resource groups · 25 operations · async/await on URLSession**
 
-- **Articles** — list and filter by status, visibility, webhook-only or sort
-  order, fetch by slug or UUID, publish or schedule from Markdown, update in
-  place, and save drafts.
-- **Series** — list, create, and add an article at a position.
-- **Reactions** — `like` / `clap` / `bookmark` counts plus the caller's own
-  reactions; add and remove.
-- **Comments** — read an article's thread, newest first, replies nested one
-  level deep.
-- **Follows** — a profile's follower/following counts and whether the key's
-  owner follows it.
-- **AI** — SEO/AEO/GEO title suggestions (`suggest` from existing copy, `seo`
-  from a keyword) and free-form system + user completions.
-- **Images** — AI cover-image generation (`1024x1024`, `1792x1024`,
-  `1024x1792`) and CDN upload.
-- **Discovery** — full-text search across articles, profiles and tags, and
-  related-article recommendations.
-- **Account** — the authenticated profile, an analytics summary (views,
-  gross/net revenue, active subscribers), live plan and quota, the self-serve
-  trial, and the upsell funnel (platform-admin keys only).
+Works with any Swift 5.9 codebase — an iOS or macOS reader, a Linux CI job that
+syncs a blog out of another CMS, a server-side Vapor handler. No third-party
+dependencies. Covers the developer API at `https://api.misar.io/blog/v1` in
+full.
 
-That is all 25 key-authenticated operations.
+---
+
+## Install
+
+### Swift Package Manager
+
+In `Package.swift`:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/Misar-AI/misarblog-swift.git", from: "5.0.0")
+]
+```
+
+and in the target that uses it:
+
+```swift
+.target(name: "MyApp", dependencies: [
+    .product(name: "MisarBlog", package: "misarblog-swift")
+])
+```
+
+### Xcode
+
+**File ▸ Add Package Dependencies…** and paste the same URL.
+
+Swift 5.9+, macOS 12+ / iOS 15+ (or Linux with `FoundationNetworking`).
+
+---
+
+## Authentication
+
+Mint a key in the dashboard at
+<https://www.misar.blog/dashboard/settings/api>. Keys are prefixed `mbk_` and
+travel on `Authorization: Bearer`; an OAuth 2.1 access token works on the same
+header. Key management itself is a cookie-session flow and is deliberately not
+exposed here. Construct the client with `MisarBlogClient(apiKey: key)`, as the
+first example below does.
+
+The machine-readable contract for every route below is the OpenAPI spec at
+<https://api.misar.io/blog/v1/openapi.json>.
+
+---
+
+## API surface
+
+Every operation is `async throws` and returns `[String: Any]` — the decoded
+JSON, uniform across routes and forward-compatible with fields added after this
+release. An empty body or unparsable payload returns `[:]`.
+
+Note the grouping: search and recommendations are their own resources here, not
+methods on `articles`, and the trial and upsell funnel are split out of `plan`.
+
+| Resource | Method | Endpoint | What it does |
+| --- | --- | --- | --- |
+| `articles` | `list` | `GET /articles` | List your articles, filtered by status/visibility/sort |
+| `articles` | `get` | `GET /articles/{slug}` | Fetch one article by slug or UUID, full Markdown body |
+| `articles` | `update` | `PATCH /articles/{slug}` | Update title/body/tags in place; `publish: true` flips a draft live |
+| `articles` | `publish` | `POST /articles` | Publish or schedule an article from Markdown |
+| `articles` | `createDraft` | `POST /drafts` | Save a draft without publishing |
+| `search` | `query` | `GET /search` | Full-text search across articles, profiles and tags |
+| `recommendations` | `get` | `GET /recommendations` | Related articles for an article id |
+| `series` | `list` | `GET /series` | List your series |
+| `series` | `create` | `POST /series` | Create a series |
+| `series` | `addArticle` | `POST /series/{slug}/articles` | Add an article to a series at a position |
+| `reactions` | `get` | `GET /reactions` | Reaction counts and the caller's own reactions |
+| `reactions` | `add` | `POST /reactions` | Add a `like` / `clap` / `bookmark` |
+| `reactions` | `remove` | `DELETE /reactions` | Remove a reaction |
+| `comments` | `list` | `GET /comments` | An article's comment thread, newest first, replies one level deep |
+| `follows` | `status` | `GET /follows` | Follower/following counts and whether the key's owner follows |
+| `ai` | `complete` | `POST /ai/complete` | Free-form system + user completion |
+| `ai` | `titles` | `POST /ai/titles` | SEO/AEO/GEO title suggestions (`seo` from a keyword, `suggest` from copy) |
+| `images` | `generate` | `POST /images/generate` | AI cover image (`1024x1024`, `1792x1024`, `1024x1792`) |
+| `images` | `upload` | `POST /images/upload` | Upload an image to the CDN |
+| `profile` | `get` | `GET /me` | The authenticated creator profile |
+| `analytics` | `get` | `GET /analytics` | Views, gross/net revenue, active subscribers for trailing N days |
+| `plan` | `get` | `GET /plan` | Live plan and per-feature quota |
+| `trial` | `status` | `GET /trial` | Whether a self-serve trial is active |
+| `trial` | `start` | `POST /trial` | Start a self-serve trial |
+| `upsell` | `funnel` | `GET /upsell-funnel` | Per-feature upsell funnel (platform-admin keys only; a creator key gets 403) |
+
+---
 
 ## What's in the package
 
-- `MisarBlogClient` — the client:
-  `MisarBlogClient(apiKey:baseURL:maxRetries:session:)`. `apiKey`, `baseURL`,
-  `maxRetries` and `session` are public `let`s you can read back.
-- Resource properties on the client: `articles`, `series`, `reactions`,
-  `comments`, `follows`, `ai`, `images`, `profile`, `analytics`, `plan`,
-  `trial`, `upsell`, `search`, `recommendations`. Search and recommendations
-  are their own resources here, not methods on `articles`.
-- **Every operation is `async throws`** and returns `[String: Any]` — the
-  decoded JSON, uniform across routes and forward-compatible with fields added
-  after this release. An empty body or unparsable payload returns `[:]`.
-- `MisarBlogError` — an `enum` with three cases: `.apiError`,
-  `.planLimitExceeded` and `.networkError`, plus an `upgradeURL` convenience
-  property. Match with `catch let MisarBlogError.…` pattern binding.
-- `Article` and `Series` — `Codable`, `Equatable` value types with a throwing
-  `from(_ json: [String: Any])` factory, for a typed view of a response.
-- Builds against Foundation on Apple platforms and `FoundationNetworking` on
-  Linux, with a bridged `URLSession.data(for:)` so the async surface is
-  identical on both.
+| Item | What it is |
+| --- | --- |
+| `MisarBlogClient` | The client: `MisarBlogClient(apiKey:baseURL:maxRetries:session:)`. `apiKey`, `baseURL`, `maxRetries` and `session` are public `let`s you can read back |
+| Resource properties | `articles`, `series`, `reactions`, `comments`, `follows`, `ai`, `images`, `profile`, `analytics`, `plan`, `trial`, `upsell`, `search`, `recommendations` — public computed properties |
+| `MisarBlog` | A separate class with `embedURL(username:slug:theme:)` for public iframe URLs (unauthenticated, unmetered) and `refreshToken(token:baseURL:)`, which returns its nested `TokenResult` struct (`token`, `expiresAt`). Construct it with `MisarBlog()` |
+| `MisarBlogError` | An `enum` with three cases: `.apiError`, `.planLimitExceeded` and `.networkError`, plus an `upgradeURL` convenience property. Match with `catch let MisarBlogError.…` pattern binding |
+| `Article`, `Series` | `Codable`, `Equatable` value types with a throwing `from(_ json: [String: Any])` factory, for a typed view of a response |
+| Platform bridging | Builds against Foundation on Apple platforms and `FoundationNetworking` on Linux, with a bridged `URLSession.data(for:)` so the async surface is identical on both |
 
-**No embed helper you can reach.** The other Misar.Blog SDKs expose an
-`embedUrl` helper for building public iframe URLs. Swift has the code — an
-`embedURL(username:slug:theme:)` method (and a legacy `refreshToken`) on a
-`MisarBlog` class — but that class's initializer is implicitly `internal`, so
-`MisarBlog()` does not compile outside the module. Until that is fixed, build
-the URL yourself: `https://misar.blog/{username}/{slug}/embed?theme=dark`
-(drop the slug for a whole-profile embed; omit `theme` for automatic).
+**Untyped `[String: Any]`, not typed models.** Every resource method hands back
+the raw decoded dictionary. `Article` and `Series` exist as an opt-in typed view
+you decode yourself; nothing returns them for you.
 
 **Transport.** `URLSession` — no third-party dependencies. Base URL
 `https://api.misar.io/blog/v1`; the key goes on `Authorization: Bearer`.
@@ -76,29 +122,11 @@ SSE or WebSocket endpoint accepts an API key, and the API has no webhook
 registration route — `webhook_only` is an article *visibility* value, not a
 subscription.
 
-## Install
+---
 
-Swift Package Manager, in `Package.swift`:
+## Examples
 
-```swift
-dependencies: [
-    .package(url: "https://github.com/Misar-AI/misarblog-swift.git", from: "1.1.0")
-]
-```
-
-and in the target that uses it:
-
-```swift
-.target(name: "MyApp", dependencies: [
-    .product(name: "MisarBlog", package: "misarblog-swift")
-])
-```
-
-In Xcode: **File ▸ Add Package Dependencies…** and paste the same URL.
-
-Swift 5.9+, macOS 12+ / iOS 15+ (or Linux with `FoundationNetworking`).
-
-## Quick start
+### Authenticate and publish
 
 ```swift
 import Foundation
@@ -117,12 +145,6 @@ let article = try await blog.articles.publish(data: [
 ])
 print(article["url"] as? String ?? "")
 ```
-
-Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
-`mbk_`; an OAuth 2.1 access token works on the same header. Key management
-itself is a cookie-session flow and is deliberately not exposed here.
-
-## Primary functions
 
 ### Publish (or schedule) an article
 
@@ -253,6 +275,21 @@ print(image["url"] as? String ?? "")
 dictionary the API expects (a base64 `data` field). This SDK does not build a
 multipart request for you; the Go and Python clients do.
 
+### Embed a public article
+
+```swift
+let embeds = MisarBlog()
+let url = embeds.embedURL(username: "gulshan", slug: "hello-misar", theme: "dark")
+print(url.absoluteString)
+// https://misar.blog/gulshan/hello-misar/embed?theme=dark
+```
+
+`embedURL` returns a `URL`. Omit `slug` to embed the whole profile; `theme`
+defaults to `"auto"`, which adds no query parameter. The same `MisarBlog`
+instance carries `refreshToken(token:baseURL:)`.
+
+---
+
 ## Errors
 
 Every failure throws `MisarBlogError`. It is an `enum`, not a class hierarchy —
@@ -283,13 +320,15 @@ do {
 `print(error)` yields the status, message and any scope detail without
 unwrapping the case.
 
+---
+
 ## Links
 
-- Misar.Blog — <https://misar.blog>
-- API docs — <https://docs.misar.io/blog>
-- OpenAPI spec — <https://api.misar.io/blog/v1/openapi.json>
-- Mint an API key — <https://www.misar.blog/dashboard/settings/api>
+- Website — https://www.misar.blog
+- App — https://www.misar.blog
+- Parent — https://misar.io
+- Documentation — https://docs.misar.io/blog
+- Source — https://github.com/Misar-AI/misarblog-sdks
+- Swift Package Index — https://github.com/Misar-AI/misarblog-swift
 
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT © [Misar AI](https://misar.io)

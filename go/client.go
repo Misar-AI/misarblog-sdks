@@ -1,4 +1,4 @@
-// Package misarblog is the Go client for Misar.Blog (https://misar.blog), a
+// Package misarblog is the Go client for Misar.Blog (https://www.misar.blog), a
 // hosted blogging platform: publish and schedule Markdown articles, manage
 // drafts and series, read comments, reactions, follows and per-account
 // analytics, generate SEO titles, completions and AI cover images, and search
@@ -35,6 +35,13 @@
 //
 // [EmbedURL] builds the public iframe URL for a profile or a single article; it
 // needs no key and is unmetered.
+//
+// Homepage https://www.misar.blog. Documentation https://docs.misar.io/blog.
+// Source https://github.com/Misar-AI/misarblog-sdks — the mirror keeps each
+// language in a subdirectory, so this module lives at the /go suffix and its
+// release tags are go/vX.Y.Z. Issues
+// https://github.com/Misar-AI/misarblog-sdks/issues. MIT licensed by Misar AI
+// (https://misar.io).
 package misarblog
 
 import (

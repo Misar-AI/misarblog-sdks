@@ -1,59 +1,102 @@
 # Misar.Blog PHP SDK
 
-[Misar.Blog](https://misar.blog) is a hosted blogging platform. Authors write in
-Markdown, publish or schedule articles, group them into series, and get
-comments, reactions, follows, subscriber- and paid-gated posts, AI writing
-helpers and per-account analytics. This package is the official PHP client for
-its developer API at `https://api.misar.io/blog/v1` — for anyone automating
-publishing, syncing a blog out of CI or another CMS, or building a reader,
-dashboard or integration on top of a Misar.Blog account.
+> The official PHP client for the Misar.Blog developer API.
 
-## Features
+[![Packagist](https://img.shields.io/packagist/v/misarai/misarblog-php)](https://packagist.org/packages/misarai/misarblog-php) [![PHP](https://img.shields.io/badge/php-%3E%3D8.1-777BB4)](https://www.php.net) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-The API surface this SDK covers, in full:
+**14 resource groups · 25 operations · PHP 8.1+ on ext-curl**
 
-- **Articles** — list and filter by status, visibility, webhook-only or sort
-  order, fetch by slug or UUID, publish or schedule from Markdown, update in
-  place, and save drafts.
-- **Series** — list, create, and add an article at a position.
-- **Reactions** — `like` / `clap` / `bookmark` counts plus the caller's own
-  reactions; add and remove.
-- **Comments** — read an article's thread, newest first, replies nested one
-  level deep.
-- **Follows** — a profile's follower/following counts and whether the key's
-  owner follows it.
-- **AI** — SEO/AEO/GEO title suggestions (`suggest` from existing copy, `seo`
-  from a keyword) and free-form system + user completions.
-- **Images** — AI cover-image generation (`1024x1024`, `1792x1024`,
-  `1024x1792`) and CDN upload.
-- **Discovery** — full-text search across articles, profiles and tags, and
-  related-article recommendations.
-- **Account** — the authenticated profile, an analytics summary (views,
-  gross/net revenue, active subscribers), live plan and quota, the self-serve
-  trial, and the upsell funnel (platform-admin keys only).
-- **Embeds** — build a public iframe URL for a profile or a single article.
-  Unauthenticated and unmetered.
+Works with any PHP 8.1+ codebase — a Laravel or Symfony service, a WordPress
+bridge, a cron job that syncs a blog out of CI or another CMS. Needs only
+`ext-curl` and `ext-json`. Covers the developer API at
+`https://api.misar.io/blog/v1` in full: publish or schedule Markdown articles,
+group them into series, and read comments, reactions, follows, AI writing
+helpers and per-account analytics.
 
-That is all 25 key-authenticated operations.
+---
+
+## Install
+
+### Composer
+
+```bash
+composer require misarai/misarblog-php
+```
+
+### composer.json
+
+```json
+{
+  "require": {
+    "misarai/misarblog-php": "^1.1"
+  }
+}
+```
+
+PHP 8.1+ with `ext-curl` and `ext-json`. No Guzzle, no PSR-18.
+
+---
+
+## Authentication
+
+Mint a key at <https://www.misar.blog/dashboard/settings/api> and pass it to the
+constructor — `new Client($apiKey)`. It travels on `Authorization: Bearer`.
+Keys are prefixed `mbk_`; an OAuth 2.1 access token works on the same header.
+Key management itself is a cookie-session flow and is deliberately not exposed
+here.
+
+The full request/response schema for every route below is published as an
+OpenAPI document at <https://api.misar.io/blog/v1/openapi.json>.
+
+---
+
+## API surface
+
+Fourteen readonly resource properties hang off `MisarBlog\Client`. Note that
+search and recommendations are their own resources here, not methods on
+`$articles`. Every method returns the decoded JSON as `array<string,mixed>`.
+
+| Resource | Method | Endpoint | What it does |
+| --- | --- | --- | --- |
+| `$articles` | `list` | `GET /articles` | list your articles, filtered by status/visibility/sort |
+| `$articles` | `get` | `GET /articles/{slug}` | fetch one article by slug or UUID, full Markdown body |
+| `$articles` | `update` | `PATCH /articles/{slug}` | update title/body/tags in place; `publish: true` flips a draft live |
+| `$articles` | `publish` | `POST /articles` | publish or schedule an article from Markdown |
+| `$articles` | `createDraft` | `POST /drafts` | save a draft without publishing |
+| `$search` | `query` | `GET /search` | full-text search across articles, profiles and tags |
+| `$recommendations` | `get` | `GET /recommendations` | related articles for an article id |
+| `$series` | `list` | `GET /series` | list your series |
+| `$series` | `create` | `POST /series` | create a series |
+| `$series` | `addArticle` | `POST /series/{slug}/articles` | add an article to a series at a position |
+| `$reactions` | `get` | `GET /reactions` | reaction counts and the caller's own reactions |
+| `$reactions` | `add` | `POST /reactions` | add a `like` / `clap` / `bookmark` |
+| `$reactions` | `remove` | `DELETE /reactions` | remove a reaction |
+| `$comments` | `list` | `GET /comments` | an article's comment thread, newest first, replies one level deep |
+| `$follows` | `status` | `GET /follows` | follower/following counts and whether the key's owner follows |
+| `$ai` | `complete` | `POST /ai/complete` | free-form system + user completion |
+| `$ai` | `titles` | `POST /ai/titles` | SEO/AEO/GEO title suggestions (`seo` from a keyword, `suggest` from copy) |
+| `$images` | `generate` | `POST /images/generate` | AI cover image (`1024x1024`, `1792x1024`, `1024x1792`) |
+| `$images` | `upload` | `POST /images/upload` | upload an image to the CDN |
+| `$profile` | `get` | `GET /me` | the authenticated creator profile |
+| `$analytics` | `get` | `GET /analytics` | views, gross/net revenue, active subscribers for trailing N days |
+| `$plan` | `get` | `GET /plan` | live plan and per-feature quota |
+| `$trial` | `status` | `GET /trial` | whether a self-serve trial is active |
+| `$trial` | `start` | `POST /trial` | start a self-serve trial |
+| `$upsell` | `funnel` | `GET /upsell-funnel` | per-feature upsell funnel (platform-admin keys only; a creator key gets 403) |
+
+---
 
 ## What's in the package
 
-- `MisarBlog\Client` — the client:
-  `new Client($apiKey, $baseUrl = null, $timeout = 30)`.
-- Readonly resource properties on the client: `$articles`, `$series`,
-  `$reactions`, `$comments`, `$follows`, `$ai`, `$images`, `$profile`,
-  `$analytics`, `$plan`, `$trial`, `$upsell`, `$search`, `$recommendations`.
-  Search and recommendations are their own resources here, not methods on
-  `$articles`.
-- Exceptions: `MisarBlog\ApiError` (extends `RuntimeException`),
-  `MisarBlog\PlanLimitError` and `MisarBlog\NetworkError`, both of which extend
-  `ApiError`.
-- `MisarBlog\Embed::url($username, $slug, $theme)` — static, pure string
-  building for public embeds.
-- `MisarBlog\Article` and `MisarBlog\Series` — readonly value objects with a
-  `::from(array $json)` factory, for when you want a typed view of a response.
-- `$client->request($method, $path, $data)` is public, so an endpoint this SDK
-  does not wrap yet is still one call away.
+| Item | What it is |
+| --- | --- |
+| `MisarBlog\Client` | The client: `new Client($apiKey, $baseUrl = null, $timeout = 30)`, with the 14 resource properties above |
+| `Client::request` | Public escape hatch — `request(string $method, string $path, array $data = [])` reaches an endpoint this SDK does not wrap yet |
+| `MisarBlog\ApiError` | Base exception, extends `RuntimeException`. Carries `$status`, and on 403 `$requiredScope` / `$grantedScopes` |
+| `MisarBlog\PlanLimitError` | Extends `ApiError`. The subscription blocks the call. Carries `$plan`, `$upgradeUrl`, `$retryAfter`, `$upgrade` |
+| `MisarBlog\NetworkError` | Extends `ApiError`. The request never reached the API; `$status` is `0` |
+| `MisarBlog\Embed` | `Embed::url($username, $slug, $theme)` — static, pure string building for public iframe embeds, plus the `Embed::EMBED_BASE` constant. Unauthenticated and unmetered |
+| `MisarBlog\Article`, `MisarBlog\Series` | Readonly value objects with a `::from(array $json)` factory, for when you want a typed view of a response |
 
 **Responses are associative arrays.** Every resource method returns the decoded
 JSON as `array<string,mixed>`; a `204` or empty body returns `[]`. Request
@@ -71,25 +114,11 @@ SSE or WebSocket endpoint accepts an API key, and the API has no webhook
 registration route — `webhook_only` is an article *visibility* value, not a
 subscription.
 
-## Install
+---
 
-```bash
-composer require misarai/misarblog-php
-```
+## Examples
 
-Or pin it in `composer.json`:
-
-```json
-{
-  "require": {
-    "misarai/misarblog-php": "^1.1"
-  }
-}
-```
-
-PHP 8.1+ with `ext-curl` and `ext-json`.
-
-## Quick start
+### Authenticate and publish
 
 ```php
 <?php
@@ -110,12 +139,6 @@ $article = $blog->articles->publish([
 ]);
 echo $article['url'], "\n";
 ```
-
-Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
-`mbk_`; an OAuth 2.1 access token works on the same header. Key management
-itself is a cookie-session flow and is deliberately not exposed here.
-
-## Primary functions
 
 ### Publish (or schedule) an article
 
@@ -253,6 +276,8 @@ echo Embed::url('gulshan', 'hello-misar', 'dark'), "\n";
 Pass `null` for `$slug` to embed the whole profile; `'auto'` adds no query
 parameter.
 
+---
+
 ## Errors
 
 Every failure throws. `PlanLimitError` and `NetworkError` both extend `ApiError`,
@@ -283,13 +308,15 @@ try {
 }
 ```
 
+---
+
 ## Links
 
-- Misar.Blog — <https://misar.blog>
-- API docs — <https://docs.misar.io/blog>
-- OpenAPI spec — <https://api.misar.io/blog/v1/openapi.json>
-- Mint an API key — <https://www.misar.blog/dashboard/settings/api>
+- Website — https://www.misar.blog
+- App — https://www.misar.blog
+- Parent — https://misar.io
+- Documentation — https://docs.misar.io/blog
+- Source — https://github.com/Misar-AI/misarblog-sdks
+- Packagist — https://packagist.org/packages/misarai/misarblog-php
 
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT © [Misar AI](https://misar.io)

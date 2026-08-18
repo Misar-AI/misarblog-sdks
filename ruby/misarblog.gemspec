@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = "misarblog"
-  spec.version       = "1.1.0"
+  spec.version       = "5.0.0"
   spec.authors       = ["Misar AI"]
   spec.email         = ["hello@misar.io"]
   spec.summary       = "Ruby client for misar.blog, a hosted blogging platform: publish and " \
@@ -15,14 +15,16 @@ Gem::Specification.new do |spec|
                        "key-authenticated operations. Standard library only (net/http): mbk_ bearer " \
                        "auth, retry with exponential back-off, and a typed PlanLimitError carrying " \
                        "the upgrade URL."
-  spec.homepage      = "https://www.misar.blog/docs/sdks/ruby"
+  spec.homepage      = "https://www.misar.blog"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 2.7"
 
   spec.metadata = {
-    "homepage_uri"    => spec.homepage,
-    "source_code_uri" => "https://github.com/Misar-AI/misarblog-sdks",
-    "changelog_uri"   => "https://github.com/Misar-AI/misarblog-sdks/releases"
+    "homepage_uri"      => spec.homepage,
+    "source_code_uri"   => "https://github.com/Misar-AI/misarblog-sdks",
+    "changelog_uri"     => "https://github.com/Misar-AI/misarblog-sdks/releases",
+    "documentation_uri" => "https://docs.misar.io/blog",
+    "bug_tracker_uri"   => "https://github.com/Misar-AI/misarblog-sdks/issues"
   }
 
   spec.files         = Dir["lib/**/*.rb", "README.md", "CHANGELOG.md", "LICENSE"]

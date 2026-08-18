@@ -3,7 +3,12 @@
   "description": "PHP client for misar.blog, a hosted blogging platform: publish and schedule Markdown articles, manage drafts and series, read comments, reactions, follows and analytics, generate SEO titles, completions and AI cover images, and search. PHP 8.1+ on cURL; retry with back-off, typed plan-limit errors, iframe embed URLs.",
   "type": "library",
   "license": "MIT",
-  "homepage": "https://docs.misar.io/blog",
+  "homepage": "https://www.misar.blog",
+  "support": {
+    "issues": "https://github.com/Misar-AI/misarblog-sdks/issues",
+    "source": "https://github.com/Misar-AI/misarblog-sdks",
+    "docs": "https://docs.misar.io/blog"
+  },
   "keywords": [
     "misarblog",
     "misar",

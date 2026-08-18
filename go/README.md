@@ -1,61 +1,90 @@
 # Misar.Blog Go SDK
 
-[Misar.Blog](https://misar.blog) is a hosted blogging platform. Authors write in
-Markdown, publish or schedule articles, group them into series, and get
-comments, reactions, follows, subscriber- and paid-gated posts, AI writing
-helpers and per-account analytics. This module is the official Go client for its
-developer API at `https://api.misar.io/blog/v1` — for anyone automating
-publishing, syncing a blog out of CI or another CMS, or building a reader,
-dashboard or integration on top of a Misar.Blog account.
+> The official Go client for the Misar.Blog developer API.
 
-## Features
+[![Go Reference](https://pkg.go.dev/badge/github.com/Misar-AI/misarblog-sdks/go/v5.svg)](https://pkg.go.dev/github.com/Misar-AI/misarblog-sdks/go/v5) [![Go](https://img.shields.io/badge/go-%3E%3D1.22-00ADD8)](https://go.dev) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-The API surface this SDK covers, in full:
+**12 resource groups · 25 operations · context-aware, no third-party dependencies**
 
-- **Articles** — list and filter by status, visibility, webhook-only or sort
-  order, fetch by slug or UUID, publish or schedule from Markdown, update in
-  place, and save drafts.
-- **Series** — list, create, and add an article at a position.
-- **Reactions** — `like` / `clap` / `bookmark` counts plus the caller's own
-  reactions; add and remove.
-- **Comments** — read an article's thread, newest first, replies nested one
-  level deep.
-- **Follows** — a profile's follower/following counts and whether the key's
-  owner follows it.
-- **AI** — SEO/AEO/GEO title suggestions (`suggest` from existing copy, `seo`
-  from a keyword) and free-form system + user completions.
-- **Images** — AI cover-image generation (`1024x1024`, `1792x1024`,
-  `1024x1792`) and multipart CDN upload.
-- **Discovery** — full-text search across articles, profiles and tags, and
-  related-article recommendations.
-- **Account** — the authenticated profile, an analytics summary (views,
-  gross/net revenue, active subscribers), live plan and quota, the self-serve
-  trial, and the upsell funnel (platform-admin keys only).
-- **Embeds** — build a public iframe URL for a profile or a single article.
-  Unauthenticated and unmetered.
+Works with any Go 1.22+ program that needs to drive a [Misar.Blog](https://www.misar.blog)
+account: automating publishing, syncing a blog out of CI or another CMS, or
+building a reader, dashboard or integration on top of the API at
+`https://api.misar.io/blog/v1`.
 
-That is all 25 key-authenticated operations.
+---
+
+## Install
+
+```bash
+go get github.com/Misar-AI/misarblog-sdks/go/v5
+```
+
+The module lives in the `go/` subdirectory of the SDK repository, so its release
+tags are `go/vX.Y.Z` and the import path carries the `/go` suffix:
+
+```go
+import misarblog "github.com/Misar-AI/misarblog-sdks/go/v5"
+```
+
+---
+
+## Authentication
+
+Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
+`mbk_`; an OAuth 2.1 access token works on the same header. Key management
+itself is a cookie-session flow and is deliberately not exposed here.
+
+Pass the key to `misarblog.New`; it is sent as `Authorization: Bearer`. See the
+first example below. The full request/response contract
+is published as an OpenAPI document at
+<https://api.misar.io/blog/v1/openapi.json>.
+
+---
+
+## API surface
+
+Every method takes a `context.Context` first.
+
+| Resource | Method | Endpoint | What it does |
+| --- | --- | --- | --- |
+| `Articles` | `List` | `GET /articles` | list your articles, filtered by status/visibility/sort |
+| `Articles` | `Get` | `GET /articles/{slug}` | fetch one article by slug or UUID, full Markdown body |
+| `Articles` | `Publish` | `POST /articles` | publish or schedule an article from Markdown |
+| `Articles` | `Update` | `PATCH /articles/{slug}` | update title/body/tags in place; `publish: true` flips a draft live |
+| `Articles` | `CreateDraft` | `POST /drafts` | save a draft without publishing |
+| `Articles` | `Search` | `GET /search` | full-text search across articles, profiles and tags |
+| `Articles` | `Recommendations` | `GET /recommendations` | related articles for an article id |
+| `Series` | `List` | `GET /series` | list your series |
+| `Series` | `Create` | `POST /series` | create a series |
+| `Series` | `AddArticle` | `POST /series/{slug}/articles` | add an article to a series at a position |
+| `Reactions` | `Get` | `GET /reactions` | reaction counts and the caller's own reactions |
+| `Reactions` | `Add` | `POST /reactions` | add a `like` / `clap` / `bookmark` |
+| `Reactions` | `Remove` | `DELETE /reactions` | remove a reaction |
+| `Comments` | `List` | `GET /comments` | an article's comment thread, newest first, replies one level deep |
+| `Follows` | `Status` | `GET /follows` | follower/following counts and whether the key's owner follows |
+| `AI` | `Complete` | `POST /ai/complete` | free-form system + user completion |
+| `AI` | `Titles` | `POST /ai/titles` | SEO/AEO/GEO title suggestions (`seo` from a keyword, `suggest` from copy) |
+| `Images` | `Generate` | `POST /images/generate` | AI cover image (`1024x1024`, `1792x1024`, `1024x1792`) |
+| `Images` | `Upload` | `POST /images/upload` | upload an image to the CDN |
+| `Me` | `Get` | `GET /me` | the authenticated creator profile |
+| `Analytics` | `Summary` | `GET /analytics` | views, gross/net revenue, active subscribers for trailing N days |
+| `Plan` | `Get` | `GET /plan` | live plan and per-feature quota |
+| `Trial` | `Status` | `GET /trial` | whether a self-serve trial is active |
+| `Trial` | `Start` | `POST /trial` | start a self-serve trial |
+| `UpsellFunnel` | `Get` | `GET /upsell-funnel` | per-feature upsell funnel (platform-admin keys only; a creator key gets 403) |
+
+---
 
 ## What's in the package
 
-- `Client` — constructed with `misarblog.New(apiKey, opts...)`.
-- Resource fields on the client: `Articles`, `Series`, `Reactions`, `Comments`,
-  `Follows`, `AI`, `Images`, `Me`, `Analytics`, `Plan`, `Trial`,
-  `UpsellFunnel`. Every method takes a `context.Context` first.
-- Options: `WithBaseURL`, `WithMaxRetries`, `WithTimeout`, `WithHTTPClient`
-  (inject your own `*http.Client`, as the test suite does).
-- Errors: `*APIError`, `*PlanLimitError`, `*NetworkError` — match with
-  `errors.As`.
-- Typed request and response structs for every operation — `Article`,
-  `ArticleSummary`, `PublishArticleRequest`, `UpdateArticleRequest`, `Comment`,
-  `Series`, `Profile`, `AnalyticsSummary`, `Plan`, `TrialStatus`,
-  `ArticleReactions`, `TitlesResponse` and the rest.
-- `EmbedURL(username, slug, theme)` — pure string building for public embeds;
-  pass an empty `slug` for the profile embed and `""` or `"auto"` for the
-  default theme.
-- `RefreshToken(token, baseURL)` — a legacy helper for the web app's session
-  token endpoint, not the developer API. Irrelevant if you authenticate with an
-  `mbk_` key.
+| Item | What it is |
+| --- | --- |
+| `Client` | The client, constructed with `misarblog.New(apiKey, opts...)`. Resource fields: `Articles`, `Series`, `Reactions`, `Comments`, `Follows`, `AI`, `Images`, `Me`, `Analytics`, `Plan`, `Trial`, `UpsellFunnel`. |
+| Options | `WithBaseURL`, `WithMaxRetries`, `WithTimeout`, `WithHTTPClient` (inject your own `*http.Client`, as the test suite does). |
+| Errors | `*APIError`, `*PlanLimitError`, `*NetworkError` — match with `errors.As`. |
+| Models | Typed request and response structs for every operation — `Article`, `ArticleSummary`, `PublishArticleRequest`, `UpdateArticleRequest`, `Comment`, `Series`, `Profile`, `AnalyticsSummary`, `Plan`, `TrialStatus`, `ArticleReactions`, `TitlesResponse` and the rest. |
+| `EmbedURL(username, slug, theme)` | Pure string building for public embeds; pass an empty `slug` for the profile embed and `""` or `"auto"` for the default theme. |
+| `RefreshToken(token, baseURL)` | A legacy helper for the web app's session token endpoint, not the developer API. Irrelevant if you authenticate with an `mbk_` key. |
 
 **Transport.** Standard library `net/http`, no third-party dependencies. Base
 URL `https://api.misar.io/blog/v1`; the key goes on `Authorization: Bearer`.
@@ -70,20 +99,11 @@ SSE or WebSocket endpoint accepts an API key, and the API has no webhook
 registration route — `webhook_only` is an article *visibility* value, not a
 subscription.
 
-## Install
+---
 
-```bash
-go get github.com/Misar-AI/misarblog-sdks/go@v1.1.0
-```
+## Examples
 
-Go 1.22+. The module lives in the `go/` subdirectory of the SDK repository, so
-its release tags are `go/vX.Y.Z` and the import path carries the `/go` suffix:
-
-```go
-import misarblog "github.com/Misar-AI/misarblog-sdks/go"
-```
-
-## Quick start
+### Authenticate and publish
 
 ```go
 package main
@@ -93,7 +113,7 @@ import (
 	"fmt"
 	"os"
 
-	misarblog "github.com/Misar-AI/misarblog-sdks/go"
+	misarblog "github.com/Misar-AI/misarblog-sdks/go/v5"
 )
 
 func main() {
@@ -117,12 +137,6 @@ func main() {
 	fmt.Println(article.URL)
 }
 ```
-
-Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
-`mbk_`; an OAuth 2.1 access token works on the same header. Key management
-itself is a cookie-session flow and is deliberately not exposed here.
-
-## Primary functions
 
 ### Publish (or schedule) an article
 
@@ -248,6 +262,8 @@ url := misarblog.EmbedURL("gulshan", "hello-misar", "dark")
 // https://misar.blog/gulshan/hello-misar/embed?theme=dark
 ```
 
+---
+
 ## Errors
 
 Every failure returns a non-nil error. All three types are pointer types —
@@ -281,13 +297,15 @@ if err != nil {
 The three are independent types — `*PlanLimitError` does not wrap `*APIError` —
 so check for the one you care about rather than relying on an ordering.
 
+---
+
 ## Links
 
-- Misar.Blog — <https://misar.blog>
-- API docs — <https://docs.misar.io/blog>
-- OpenAPI spec — <https://api.misar.io/blog/v1/openapi.json>
-- Mint an API key — <https://www.misar.blog/dashboard/settings/api>
+- Website — https://www.misar.blog
+- App — https://www.misar.blog
+- Parent — https://misar.io
+- Documentation — https://docs.misar.io/blog
+- Source — https://github.com/Misar-AI/misarblog-sdks
+- pkg.go.dev — https://pkg.go.dev/github.com/Misar-AI/misarblog-sdks/go/v5
 
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT © [Misar AI](https://misar.io)

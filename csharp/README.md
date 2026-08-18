@@ -1,56 +1,103 @@
 # Misar.Blog C# SDK
 
-[Misar.Blog](https://misar.blog) is a hosted blogging platform. Authors write in
-Markdown, publish or schedule articles, group them into series, and get
-comments, reactions, follows, subscriber- and paid-gated posts, AI writing
-helpers and per-account analytics. This package is the official C#/.NET client
-for its developer API at `https://api.misar.io/blog/v1` — for anyone automating
-publishing, syncing a blog out of CI or another CMS, or building a reader,
-dashboard or integration on top of a Misar.Blog account.
+> The official C#/.NET client for the Misar.Blog developer API.
 
-## Features
+[![NuGet](https://img.shields.io/nuget/v/MisarBlog)](https://www.nuget.org/packages/MisarBlog) [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-The API surface this SDK covers, in full:
+**14 operation groups · 25 async methods · .NET 8, returns JsonElement**
 
-- **Articles** — list and filter by status, visibility, webhook-only or sort
-  order, fetch by slug or UUID, publish or schedule from Markdown, update in
-  place, and save drafts.
-- **Series** — list, create, and add an article at a position.
-- **Reactions** — `like` / `clap` / `bookmark` counts plus the caller's own
-  reactions; add and remove.
-- **Comments** — read an article's thread, newest first, replies nested one
-  level deep.
-- **Follows** — a profile's follower/following counts and whether the key's
-  owner follows it.
-- **AI** — SEO/AEO/GEO title suggestions (`suggest` from existing copy, `seo`
-  from a keyword) and free-form system + user completions.
-- **Images** — AI cover-image generation (`1024x1024`, `1792x1024`,
-  `1024x1792`) and CDN upload.
-- **Discovery** — full-text search across articles, profiles and tags, and
-  related-article recommendations.
-- **Account** — the authenticated profile, an analytics summary (views,
-  gross/net revenue, active subscribers), live plan and quota, the self-serve
-  trial, and the upsell funnel (platform-admin keys only).
-- **Embeds** — build a public iframe URL for a profile or a single article.
-  Unauthenticated and unmetered.
+Works with any .NET 8 application — an ASP.NET service, a console job that syncs
+a blog out of CI or another CMS, a desktop reader, a dashboard. No third-party
+dependencies. Covers the developer API at `https://api.misar.io/blog/v1` in
+full: publish or schedule Markdown articles, group them into series, and read
+comments, reactions, follows, AI writing helpers and per-account analytics.
 
-That is all 25 key-authenticated operations.
+---
+
+## Install
+
+### .NET CLI
+
+```bash
+dotnet add package MisarBlog
+```
+
+### Package Manager
+
+```powershell
+Install-Package MisarBlog
+```
+
+### PackageReference
+
+```xml
+<PackageReference Include="MisarBlog" Version="5.0.0" />
+```
+
+Targets .NET 8. No third-party dependencies.
+
+---
+
+## Authentication
+
+Mint a key at <https://www.misar.blog/dashboard/settings/api> and pass it to the
+constructor — `new MisarBlogClient(apiKey)`. It travels on
+`Authorization: Bearer`. Keys are prefixed `mbk_`; an OAuth 2.1 access token
+works on the same header. Key management itself is a cookie-session flow and is
+deliberately not exposed here.
+
+The full request/response schema for every route below is published as an
+OpenAPI document at <https://api.misar.io/blog/v1/openapi.json>.
+
+---
+
+## API surface
+
+`MisarBlogClient` is flat — there are no resource objects. Every operation is a
+public `async` method named `Group_ActionAsync`, returns `Task<JsonElement>`,
+and takes a trailing optional `CancellationToken ct`. The 14 groups below are
+name prefixes, not properties.
+
+| Resource | Method | Endpoint | What it does |
+| --- | --- | --- | --- |
+| Articles | `Articles_ListAsync` | `GET /articles` | list your articles, filtered by status/visibility/sort |
+| Articles | `Articles_GetAsync` | `GET /articles/{slug}` | fetch one article by slug or UUID, full Markdown body |
+| Articles | `Articles_PublishAsync` | `POST /articles` | publish or schedule an article from Markdown |
+| Articles | `Articles_UpdateAsync` | `PATCH /articles/{slug}` | update title/body/tags in place; `publish: true` flips a draft live |
+| Articles | `Articles_CreateDraftAsync` | `POST /drafts` | save a draft without publishing |
+| Search | `SearchAsync` | `GET /search` | full-text search across articles, profiles and tags |
+| Recommendations | `Recommendations_GetAsync` | `GET /recommendations` | related articles for an article id |
+| Series | `Series_ListAsync` | `GET /series` | list your series |
+| Series | `Series_CreateAsync` | `POST /series` | create a series |
+| Series | `Series_AddArticleAsync` | `POST /series/{slug}/articles` | add an article to a series at a position |
+| Reactions | `Reactions_GetAsync` | `GET /reactions` | reaction counts and the caller's own reactions |
+| Reactions | `Reactions_AddAsync` | `POST /reactions` | add a `like` / `clap` / `bookmark` |
+| Reactions | `Reactions_RemoveAsync` | `DELETE /reactions` | remove a reaction |
+| Comments | `Comments_ListAsync` | `GET /comments` | an article's comment thread, newest first, replies one level deep |
+| Follows | `Follows_StatusAsync` | `GET /follows` | follower/following counts and whether the key's owner follows |
+| AI | `Ai_CompleteAsync` | `POST /ai/complete` | free-form system + user completion |
+| AI | `Ai_TitlesAsync` | `POST /ai/titles` | SEO/AEO/GEO title suggestions (`seo` from a keyword, `suggest` from copy) |
+| Images | `Images_GenerateAsync` | `POST /images/generate` | AI cover image (`1024x1024`, `1792x1024`, `1024x1792`) |
+| Images | `Images_UploadAsync` | `POST /images/upload` | upload an image to the CDN |
+| Profile | `Profile_GetAsync` | `GET /me` | the authenticated creator profile |
+| Analytics | `Analytics_GetAsync` | `GET /analytics` | views, gross/net revenue, active subscribers for trailing N days |
+| Plan | `Plan_GetAsync` | `GET /plan` | live plan and per-feature quota |
+| Trial | `Trial_StatusAsync` | `GET /trial` | whether a self-serve trial is active |
+| Trial | `Trial_StartAsync` | `POST /trial` | start a self-serve trial |
+| Upsell | `Upsell_FunnelAsync` | `GET /upsell-funnel` | per-feature upsell funnel (platform-admin keys only; a creator key gets 403) |
+
+---
 
 ## What's in the package
 
-- `MisarBlogClient` — one flat client, `IDisposable`, constructed with
-  `new MisarBlogClient(apiKey, baseUrl, maxRetries, httpClient)`. Every
-  operation is an `async` method named `Group_ActionAsync` and every one takes
-  an optional `CancellationToken ct`.
-- Methods, grouped by prefix: `Articles_*`, `Series_*`, `Reactions_*`,
-  `Comments_*`, `Follows_*`, `Ai_*`, `Images_*`, `Profile_*`, `Plan_*`,
-  `Trial_*`, `Analytics_*`, `Upsell_*`, plus `SearchAsync` and
-  `Recommendations_GetAsync`.
-- Exceptions: `MisarBlogException`, `MisarBlogPlanLimitException`,
-  `MisarBlogNetworkException`.
-- `Embed.Url(username, slug, theme)` — static, pure string building for public
-  embeds.
-- `Article` and `Series` records with `From(JsonElement)` projections.
+| Item | What it is |
+| --- | --- |
+| `MisarBlogClient` | The client, `IDisposable`, constructed with `new MisarBlogClient(apiKey, baseUrl, maxRetries, httpClient)`. `MaxRetries` is readable; `Dispose()` releases the SDK's own `HttpClient` |
+| `MisarBlogException` | Base exception for any non-2xx the SDK did not classify further. Carries `Status`, and on 403 `RequiredScope` / `GrantedScopes` |
+| `MisarBlogPlanLimitException` | Derives from `MisarBlogException`. The subscription blocks the call. Carries `Plan`, `UpgradeUrl`, `RetryAfter` |
+| `MisarBlogNetworkException` | Derives from `MisarBlogException`. Every attempt failed at the transport level; `Status` is `0` |
+| `Embed.Url(username, slug, theme)` | Static, pure string building for public iframe embeds. Unauthenticated and unmetered |
+| `Article`, `Series` | `sealed record`s with `From(JsonElement)` projections, for when you want a typed view of one response element |
 
 **Responses are `JsonElement`.** Unlike the TypeScript and Go clients, this SDK
 does not deserialise every route into a generated model — each method hands back
@@ -71,15 +118,11 @@ SSE or WebSocket endpoint accepts an API key, and the API has no webhook
 registration route — `webhook_only` is an article *visibility* value, not a
 subscription.
 
-## Install
+---
 
-```bash
-dotnet add package MisarBlog --version 1.1.0
-```
+## Examples
 
-Targets .NET 8.
-
-## Quick start
+### Authenticate and publish
 
 ```csharp
 using System.Text.Json;
@@ -98,12 +141,6 @@ JsonElement article = await blog.Articles_PublishAsync(new
 });
 Console.WriteLine(article.GetProperty("url").GetString());
 ```
-
-Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
-`mbk_`; an OAuth 2.1 access token works on the same header. Key management
-itself is a cookie-session flow and is deliberately not exposed here.
-
-## Primary functions
 
 ### Publish (or schedule) an article
 
@@ -242,6 +279,8 @@ string url = Embed.Url("gulshan", "hello-misar", theme: "dark");
 
 Pass `null` for `slug` to embed the whole profile.
 
+---
+
 ## Errors
 
 Every failure throws. `MisarBlogPlanLimitException` and
@@ -274,13 +313,15 @@ catch (MisarBlogException e)
 }
 ```
 
+---
+
 ## Links
 
-- Misar.Blog — <https://misar.blog>
-- API docs — <https://docs.misar.io/blog>
-- OpenAPI spec — <https://api.misar.io/blog/v1/openapi.json>
-- Mint an API key — <https://www.misar.blog/dashboard/settings/api>
+- Website — https://www.misar.blog
+- App — https://www.misar.blog
+- Parent — https://misar.io
+- Documentation — https://docs.misar.io/blog
+- Source — https://github.com/Misar-AI/misarblog-sdks
+- NuGet — https://www.nuget.org/packages/MisarBlog
 
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT © [Misar AI](https://misar.io)

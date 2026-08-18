@@ -22,7 +22,7 @@ All notable changes to this SDK are documented here. Versions follow
 - The SDK now covers all 25 key-authenticated operations.
 
 ### Changed
-- Module path is now `github.com/Misar-AI/misarblog-sdks/go`, matching the
+- Module path is now `github.com/Misar-AI/misarblog-sdks/go/v5`, matching the
   repository that actually serves it. Release tags are `go/vX.Y.Z`.
 - The response body is read once per attempt so the retry decision can inspect
   it, rather than being discarded before the error is parsed.

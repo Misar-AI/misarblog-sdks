@@ -1,59 +1,111 @@
 # Misar.Blog Java SDK
 
-[Misar.Blog](https://misar.blog) is a hosted blogging platform. Authors write in
-Markdown, publish or schedule articles, group them into series, and get
-comments, reactions, follows, subscriber- and paid-gated posts, AI writing
-helpers and per-account analytics. This artifact is the official Java client for
-its developer API at `https://api.misar.io/blog/v1` — for anyone automating
-publishing, syncing a blog out of CI or another CMS, or building a reader,
-dashboard or integration on top of a Misar.Blog account.
+> Publish, schedule and manage a Misar.Blog account from Java.
 
-## Features
+[![Maven Central](https://img.shields.io/maven-central/v/blog.misar/misarblog)](https://central.sonatype.com/artifact/blog.misar/misarblog) [![Java](https://img.shields.io/badge/java-17%2B-orange)](https://openjdk.org) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-The API surface this SDK covers, in full:
+**10 resource groups · 25 operations · blocking calls plus a CompletableFuture wrapper**
 
-- **Articles** — list and filter by status, visibility, webhook-only or sort
-  order, fetch by slug or UUID, publish or schedule from Markdown, update in
-  place, and save drafts.
-- **Series** — list, create, and add an article at a position.
-- **Reactions** — `like` / `clap` / `bookmark` counts plus the caller's own
-  reactions; add and remove.
-- **Comments** — read an article's thread, newest first, replies nested one
-  level deep.
-- **Follows** — a profile's follower/following counts and whether the key's
-  owner follows it.
-- **AI** — SEO/AEO/GEO title suggestions (`suggest` from existing copy, `seo`
-  from a keyword) and free-form system + user completions.
-- **Images** — AI cover-image generation (`1024x1024`, `1792x1024`,
-  `1024x1792`) and CDN upload.
-- **Discovery** — full-text search across articles, profiles and tags, and
-  related-article recommendations.
-- **Account** — the authenticated profile, an analytics summary (views,
-  gross/net revenue, active subscribers), live plan and quota, the self-serve
-  trial, and the upsell funnel (platform-admin keys only).
-- **Embeds** — build a public iframe URL for a profile or a single article.
-  Unauthenticated and unmetered.
+Works with any JVM application on Java 17 or newer — a CI job that syncs a blog
+out of another CMS, a Spring service, a desktop reader, or a dashboard built on
+a Misar.Blog account. Covers the developer API at `https://api.misar.io/blog/v1`
+in full.
 
-That is all 25 key-authenticated operations.
+---
+
+## Install
+
+### Maven
+
+```xml
+<dependency>
+    <groupId>blog.misar</groupId>
+    <artifactId>misarblog</artifactId>
+    <version>5.0.0</version>
+</dependency>
+```
+
+### Gradle (Kotlin DSL)
+
+```kotlin
+implementation("blog.misar:misarblog:5.0.0")
+```
+
+### Gradle (Groovy)
+
+```groovy
+implementation 'blog.misar:misarblog:5.0.0'
+```
+
+Java 17+. Pulls in `com.fasterxml.jackson.core:jackson-databind`.
+
+---
+
+## Authentication
+
+Mint a key in the dashboard at
+<https://www.misar.blog/dashboard/settings/api>. Keys are prefixed `mbk_` and
+travel on `Authorization: Bearer`; an OAuth 2.1 access token works on the same
+header. Key management itself is a cookie-session flow and is deliberately not
+exposed here. Construct the client with
+`new MisarBlog(System.getenv("MISARBLOG_API_KEY"))`, as the first example below
+does.
+
+The machine-readable contract for every route below is the OpenAPI spec at
+<https://api.misar.io/blog/v1/openapi.json>.
+
+---
+
+## API surface
+
+25 operations across 10 resource groups, exposed as 27 methods — `articles.list`
+and `comments.list` each carry a convenience overload.
+
+| Resource | Method | Endpoint | What it does |
+| --- | --- | --- | --- |
+| `articles` | `list(Map)` | `GET /articles` | List your articles, filtered by status/visibility/sort |
+| `articles` | `list()` | `GET /articles` | Same call with no params — convenience overload |
+| `articles` | `get(String)` | `GET /articles/{slug}` | Fetch one article by slug or UUID, full Markdown body |
+| `articles` | `publish(Map)` | `POST /articles` | Publish or schedule an article from Markdown |
+| `articles` | `update(String, Map)` | `PATCH /articles/{slug}` | Update title/body/tags in place; `publish: true` flips a draft live |
+| `articles` | `createDraft(Map)` | `POST /drafts` | Save a draft without publishing |
+| `articles` | `search(Map)` | `GET /search` | Full-text search across articles, profiles and tags |
+| `articles` | `recommendations(String, Integer)` | `GET /recommendations` | Related articles for an article id |
+| `series` | `list()` | `GET /series` | List your series |
+| `series` | `create(Map)` | `POST /series` | Create a series |
+| `series` | `addArticle(String, Map)` | `POST /series/{slug}/articles` | Add an article to a series at a position |
+| `reactions` | `get(String)` | `GET /reactions` | Reaction counts and the caller's own reactions |
+| `reactions` | `add(Map)` | `POST /reactions` | Add a `like` / `clap` / `bookmark` |
+| `reactions` | `remove(String, String)` | `DELETE /reactions` | Remove a reaction |
+| `comments` | `list(String, Integer, Integer)` | `GET /comments` | An article's comment thread, newest first, replies one level deep |
+| `comments` | `list(String)` | `GET /comments` | Same call with the server's default paging — convenience overload |
+| `follows` | `status(String)` | `GET /follows` | Follower/following counts and whether the key's owner follows |
+| `ai` | `complete(Map)` | `POST /ai/complete` | Free-form system + user completion |
+| `ai` | `titles(Map)` | `POST /ai/titles` | SEO/AEO/GEO title suggestions (`seo` from a keyword, `suggest` from copy) |
+| `images` | `generate(Map)` | `POST /images/generate` | AI cover image (`1024x1024`, `1792x1024`, `1024x1792`) |
+| `images` | `upload(Map)` | `POST /images/upload` | Upload an image to the CDN |
+| `account` | `me()` | `GET /me` | The authenticated creator profile |
+| `analytics` | `summary(Integer)` | `GET /analytics` | Views, gross/net revenue, active subscribers for trailing N days |
+| `analytics` | `upsellFunnel(Integer, String)` | `GET /upsell-funnel` | Per-feature upsell funnel (platform-admin keys only; a creator key gets 403) |
+| `plan` | `get()` | `GET /plan` | Live plan and per-feature quota |
+| `plan` | `trialStatus()` | `GET /trial` | Whether a self-serve trial is active |
+| `plan` | `startTrial(Map)` | `POST /trial` | Start a self-serve trial |
+
+---
 
 ## What's in the package
 
-- `blog.misar.sdk.MisarBlog` — the client. `new MisarBlog(apiKey)` for the
-  defaults, or `new MisarBlog.Builder(apiKey).baseUrl(...).maxRetries(...)
-  .httpClient(...).build()`.
-- Resource fields on the client: `articles`, `series`, `reactions`, `comments`,
-  `follows`, `ai`, `images`, `account`, `analytics`, `plan`.
-- Exceptions: `BlogApiException` (checked) and `PlanLimitException`, which
-  extends it.
-- `MisarBlog.embedUrl(username, slug, theme)` — static, pure string building for
-  public embeds.
-- `blog.misar.sdk.models.Article` and `.Series` — Jackson-mapped POJOs with
-  `@JsonIgnoreProperties(ignoreUnknown = true)`, so a field the API adds later
-  will not break deserialisation.
-- `blog.async(() -> blog.articles.list())` — runs any blocking call on the
-  common `ForkJoinPool` and hands back a `CompletableFuture`, wrapping the
-  checked exception in a `CompletionException`. There is no separately
-  implemented async transport.
+| Item | What it is |
+| --- | --- |
+| `blog.misar.sdk.MisarBlog` | The client. `new MisarBlog(apiKey)` for the defaults |
+| `MisarBlog.Builder` | `new MisarBlog.Builder(apiKey).baseUrl(...).maxRetries(...).httpClient(...).build()` |
+| Resource fields | `articles`, `series`, `reactions`, `comments`, `follows`, `ai`, `images`, `account`, `analytics`, `plan` — all `public final` |
+| `async(BlogSupplier<T>)` | Runs any blocking call on the common `ForkJoinPool` and hands back a `CompletableFuture<T>`, wrapping the checked exception in a `CompletionException`. There is no separately implemented async transport |
+| `BlogSupplier<T>` | The `@FunctionalInterface` `async` takes — a supplier that may throw `BlogApiException` |
+| `MisarBlog.embedUrl(username, slug, theme)` | Static, pure string building for public embeds. Unauthenticated and unmetered |
+| `blog.misar.sdk.models.Article`, `.Series` | Jackson-mapped POJOs with `@JsonIgnoreProperties(ignoreUnknown = true)`, so a field the API adds later will not break deserialisation |
+| `BlogApiException` | Checked. Every call declares `throws BlogApiException`. Accessor: `getStatus()` |
+| `PlanLimitException` | Extends `BlogApiException`. Accessors: `getPlan()`, `getUpgradeUrl()`, `getRetryAfter()` |
 
 **Mostly `Map<String, Object>`.** Only `articles.get`, `articles.publish`,
 `articles.update`, `articles.createDraft` and `series.create` return typed
@@ -74,27 +126,11 @@ SSE or WebSocket endpoint accepts an API key, and the API has no webhook
 registration route — `webhook_only` is an article *visibility* value, not a
 subscription.
 
-## Install
+---
 
-Maven:
+## Examples
 
-```xml
-<dependency>
-    <groupId>blog.misar</groupId>
-    <artifactId>misarblog</artifactId>
-    <version>1.1.0</version>
-</dependency>
-```
-
-Gradle:
-
-```kotlin
-implementation("blog.misar:misarblog:1.1.0")
-```
-
-Java 17+. Pulls in `com.fasterxml.jackson.core:jackson-databind`.
-
-## Quick start
+### Authenticate and publish
 
 ```java
 import blog.misar.sdk.MisarBlog;
@@ -119,12 +155,6 @@ public class Example {
     }
 }
 ```
-
-Mint a key at <https://www.misar.blog/dashboard/settings/api>. Keys are prefixed
-`mbk_`; an OAuth 2.1 access token works on the same header. Key management
-itself is a cookie-session flow and is deliberately not exposed here.
-
-## Primary functions
 
 ### Publish (or schedule) an article
 
@@ -262,6 +292,8 @@ String url = MisarBlog.embedUrl("gulshan", "hello-misar", "dark");
 Pass `null` for `slug` to embed the whole profile, and `"auto"` or `null` for
 the default theme.
 
+---
+
 ## Errors
 
 `BlogApiException` is a **checked** exception, so every call declares `throws
@@ -292,13 +324,15 @@ Two differences from the TypeScript, Python, Go and Dart clients worth knowing:
 - **No 403 scope accessors.** `required_scope` and `granted_scopes` are not
   promoted to fields here; the raw error body is embedded in `getMessage()`.
 
+---
+
 ## Links
 
-- Misar.Blog — <https://misar.blog>
-- API docs — <https://docs.misar.io/blog>
-- OpenAPI spec — <https://api.misar.io/blog/v1/openapi.json>
-- Mint an API key — <https://www.misar.blog/dashboard/settings/api>
+- Website — https://www.misar.blog
+- App — https://www.misar.blog
+- Parent — https://misar.io
+- Documentation — https://docs.misar.io/blog
+- Source — https://github.com/Misar-AI/misarblog-sdks
+- Maven Central — https://central.sonatype.com/artifact/blog.misar/misarblog
 
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT © [Misar AI](https://misar.io)
