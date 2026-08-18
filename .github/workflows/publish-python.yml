@@ -36,6 +36,7 @@ jobs:
       # before a single assertion runs.
       - run: pip install build pytest pytest-asyncio
       - run: pip install .
+        working-directory: python
       - run: pytest
         working-directory: python
       - run: python -m build
