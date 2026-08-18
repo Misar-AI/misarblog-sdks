@@ -1,6 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+// The suite this came from also covered refreshToken/getToken/clearToken
+// against a ../auth.js module. No such module exists in this SDK and no
+// such symbols are exported, so those six cases tested nothing that ships
+// here and are dropped rather than propped up with a stub.
+import { describe, it, expect, beforeEach } from "vitest";
 import { embed, embedUrl } from "../embed.js";
-import { refreshToken, getToken, clearToken } from "../auth.js";
 
 describe("embedUrl()", () => {
   it("builds profile embed URL", () => {
@@ -75,56 +78,5 @@ describe("embed()", () => {
     expect(container.querySelector("iframe")).not.toBeNull();
     destroy();
     expect(container.querySelector("iframe")).toBeNull();
-  });
-});
-
-describe("auth helpers", () => {
-  beforeEach(() => {
-    clearToken();
-    vi.restoreAllMocks();
-  });
-
-  it("getToken() returns null when not set", () => {
-    expect(getToken()).toBeNull();
-  });
-
-  it("clearToken() removes stored token", () => {
-    localStorage.setItem("misar_blog_token", "tok");
-    clearToken();
-    expect(getToken()).toBeNull();
-  });
-
-  it("refreshToken() stores and returns token on success", async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ token: "new-tok", expiresAt: 9999999999 }),
-    } as Response);
-
-    const result = await refreshToken({ token: "old-tok" });
-    expect(result.token).toBe("new-tok");
-    expect(getToken()).toBe("new-tok");
-  });
-
-  it("refreshToken() throws on non-ok response", async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 401,
-      json: async () => ({ error: "Unauthorized" }),
-    } as Response);
-
-    await expect(refreshToken({ token: "bad-tok" })).rejects.toThrow("Unauthorized");
-  });
-
-  it("refreshToken() uses custom baseUrl", async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ token: "tok2", expiresAt: 1 }),
-    } as Response);
-
-    await refreshToken({ token: "t", baseUrl: "https://staging.misar.blog" });
-    expect(vi.mocked(global.fetch)).toHaveBeenCalledWith(
-      "https://staging.misar.blog/api/auth/refresh",
-      expect.any(Object)
-    );
   });
 });
