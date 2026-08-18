@@ -1,13 +1,29 @@
 name: Publish Python SDK
+
+# See publish-typescript.yml for why workflow_call exists: auto-tag.yml cannot
+# rely on the tag it pushes to start this workflow, so it calls it directly.
 on:
   push:
     tags: ['python/v*']
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version being published (optional; pyproject.toml wins)'
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version being published (optional; pyproject.toml wins)'
+        required: false
+        type: string
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # Required for the OIDC token PyPI exchanges for a short-lived API key.
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -19,9 +35,16 @@ jobs:
         working-directory: python
       - run: python -m build
         working-directory: python
+
+      # No credential preflight here on purpose: this uses PyPI Trusted
+      # Publishing (OIDC), so there is no secret to check for. The trust has to
+      # exist on PyPI's side instead — Manage project → Publishing, or a
+      # "pending publisher" for a project that does not exist yet, matching
+      # owner Misar-AI / repo misarblog-sdks / workflow publish-python.yml.
+      # If that is missing the action fails with a 403 and names the mismatch;
+      # it never silently no-ops. The configured PYPI_API_TOKEN secret is the
+      # fallback if trusted publishing is not set up — uncomment `password:`.
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: python/dist/
-          # OIDC trusted publisher — configure on PyPI dashboard (no token needed).
-          # Fallback: set PYPI_API_TOKEN secret and uncomment:
           # password: ${{ secrets.PYPI_API_TOKEN }}

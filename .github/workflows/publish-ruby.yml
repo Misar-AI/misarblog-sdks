@@ -1,12 +1,38 @@
 name: Publish Ruby SDK
+
+# See publish-typescript.yml for why workflow_call exists: auto-tag.yml cannot
+# rely on the tag it pushes to start this workflow, so it calls it directly.
 on:
   push:
     tags: ['ruby/v*']
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version being published (optional; the gemspec wins)'
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version being published (optional; the gemspec wins)'
+        required: false
+        type: string
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
+      - name: Require publishing credentials
+        env:
+          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+        run: |
+          if [ -z "${RUBYGEMS_API_KEY:-}" ]; then
+            echo "::error::Cannot publish the Ruby SDK to RubyGems: repository secret RUBYGEMS_API_KEY is not set."
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:

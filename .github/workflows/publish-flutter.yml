@@ -1,12 +1,38 @@
 name: Publish Flutter SDK
+
+# See publish-typescript.yml for why workflow_call exists: auto-tag.yml cannot
+# rely on the tag it pushes to start this workflow, so it calls it directly.
 on:
   push:
     tags: ['flutter/v*']
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version being published (optional; pubspec.yaml wins)'
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version being published (optional; pubspec.yaml wins)'
+        required: false
+        type: string
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
+      - name: Require publishing credentials
+        env:
+          PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+        run: |
+          if [ -z "${PUB_CREDENTIALS:-}" ]; then
+            echo "::error::Cannot publish the Flutter SDK to pub.dev: repository secret PUB_CREDENTIALS is not set. It must hold the whole pub-credentials.json produced by \`dart pub login\`."
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
@@ -18,7 +44,17 @@ jobs:
         working-directory: flutter
       - run: flutter test
         working-directory: flutter
-      - run: dart pub publish --force
-        working-directory: flutter
+
+      # See publish-dart.yml: the credentials FILE is the only thing pub reads;
+      # the PUB_CREDENTIALS env var this step replaces was being ignored.
+      - name: Install pub credentials
         env:
           PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+        run: |
+          mkdir -p "$HOME/.config/dart" "$HOME/.pub-cache"
+          printf '%s' "$PUB_CREDENTIALS" > "$HOME/.config/dart/pub-credentials.json"
+          printf '%s' "$PUB_CREDENTIALS" > "$HOME/.pub-cache/credentials.json"
+          chmod 600 "$HOME/.config/dart/pub-credentials.json" "$HOME/.pub-cache/credentials.json"
+
+      - run: dart pub publish --force
+        working-directory: flutter

@@ -1,8 +1,30 @@
 name: Publish TypeScript SDK
+
+# Three ways in, one job:
+#   push: tags        a tag pushed by a human (or any non-GITHUB_TOKEN actor)
+#   workflow_dispatch a manual re-run from the Actions tab
+#   workflow_call     auto-tag.yml calling this workflow in its own run
+#
+# The workflow_call entry point is the one that matters day to day: a tag
+# created with the default GITHUB_TOKEN never emits a push event (GitHub
+# suppresses it so workflows cannot retrigger themselves), so auto-tag.yml
+# invokes this workflow directly instead of hoping the tag wakes it up.
 on:
   push:
     tags: ['typescript/v*']
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version being published (optional; package.json wins)'
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version being published (optional; package.json wins)'
+        required: false
+        type: string
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -10,6 +32,17 @@ jobs:
       contents: read
       id-token: write
     steps:
+      # Fail before spending build minutes, and fail LOUDLY. A release pipeline
+      # that reports green while publishing nothing is worse than a red one.
+      - name: Require publishing credentials
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "${NPM_TOKEN:-}" ]; then
+            echo "::error::Cannot publish @misarblog/sdk: repository secret NPM_TOKEN is not set. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -21,6 +54,12 @@ jobs:
         working-directory: typescript
       - run: npm test
         working-directory: typescript
+
+      # A granular npm token can be valid for publishing NEW VERSIONS of an
+      # existing package yet still 404 on the very first publish, because
+      # creating a package in a scope is a separate right. If this fails with
+      # `E404 PUT @misarblog/sdk`, the token needs package-creation rights on
+      # the @misarblog scope (or the package must be created once by hand).
       - run: npm publish --access public --provenance
         working-directory: typescript
         env:

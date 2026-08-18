@@ -12,12 +12,27 @@ name: Publish C# SDK
 #
 # Those five fields must keep matching or the token exchange is refused. In
 # particular: renaming this file, or adding an `environment:` key without
-# updating the policy, breaks publishing.
-
+# updating the policy, breaks publishing. Being *called* by auto-tag.yml does
+# not change the workflow identity in the OIDC claim — the claim names this
+# file, the one that actually runs the job — so the policy stays valid.
+#
+# See publish-typescript.yml for why workflow_call exists: auto-tag.yml cannot
+# rely on the tag it pushes to start this workflow, so it calls it directly.
 on:
   push:
     tags: ['csharp/v*']
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to pack (optional; falls back to the tag, then the csproj)'
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version to pack (optional; falls back to the tag, then the csproj)'
+        required: false
+        type: string
 
 jobs:
   publish:
@@ -33,9 +48,31 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Extract version from tag
+      # This used to be `${GITHUB_REF_NAME#csharp/v}`, which only holds when the
+      # tag push is what started the run. Called from auto-tag.yml the ref is
+      # `main`, and that produced a package literally versioned "main". Resolve
+      # from the caller's input first, then the tag, then the csproj — and test
+      # the VALUE at each step, never a pipeline's exit status (grep|sed exits 0
+      # on empty input, so `|| fallback` would never fire).
+      - name: Resolve version
         id: ver
-        run: echo "VERSION=${GITHUB_REF_NAME#csharp/v}" >> "$GITHUB_OUTPUT"
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${INPUT_VERSION:-}"
+          if [ -z "$VERSION" ]; then
+            case "$GITHUB_REF" in
+              refs/tags/csharp/v*) VERSION="${GITHUB_REF#refs/tags/csharp/v}" ;;
+            esac
+          fi
+          if [ -z "$VERSION" ]; then
+            VERSION=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' csharp/MisarBlog.csproj | head -1)
+          fi
+          if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+            echo "::error::Cannot publish the C# SDK: no usable version (got '${VERSION}'). Pass one via the workflow input, tag as csharp/vX.Y.Z, or set <Version> in csharp/MisarBlog.csproj."
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - run: dotnet test
         working-directory: csharp
@@ -45,7 +82,8 @@ jobs:
 
       # Exchanges the workflow's OIDC token for a temporary NuGet API key and
       # writes it to the environment for the push below. Nothing long-lived is
-      # stored in repository secrets.
+      # stored in repository secrets, so there is no secret to preflight here —
+      # a broken trust policy fails this step with an explicit 403.
       - name: Authenticate to NuGet
         uses: NuGet/login@v1
         id: nuget-login
