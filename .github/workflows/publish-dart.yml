@@ -20,6 +20,12 @@ on:
 
 jobs:
   publish:
+    # `dart pub publish` falls back to an interactive OAuth prompt when the
+    # credentials file is stale or incomplete, and --force does not suppress
+    # it. Without a cap the job sits at that prompt until the 6-hour runner
+    # limit, looking indistinguishable from slow work. Observed: 30+ minutes
+    # on `dart pub publish --force` with every prior step green.
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
       contents: read
