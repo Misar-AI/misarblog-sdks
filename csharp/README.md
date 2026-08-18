@@ -31,7 +31,7 @@ Install-Package MisarBlog
 ### PackageReference
 
 ```xml
-<PackageReference Include="MisarBlog" Version="5.0.2" />
+<PackageReference Include="MisarBlog" Version="5.0.3" />
 ```
 
 Targets .NET 8. No third-party dependencies.

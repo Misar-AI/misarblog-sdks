@@ -21,7 +21,7 @@ In `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Misar-AI/misarblog-swift.git", from: "5.0.2")
+    .package(url: "https://github.com/Misar-AI/misarblog-swift.git", from: "5.0.3")
 ]
 ```
 

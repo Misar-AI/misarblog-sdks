@@ -1,6 +1,6 @@
 {
   "name": "@misarblog/sdk",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "description": "Typed client for misar.blog, a hosted blogging platform: publish and schedule Markdown articles, manage drafts and series, read comments, reactions, follows and analytics, generate SEO titles, completions and AI cover images, and search. Node 18+ and browsers; retry with back-off, typed plan-limit errors, iframe embed helpers.",
   "type": "module",
   "license": "MIT",

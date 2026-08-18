@@ -32,7 +32,7 @@ flutter pub add misarblog
 
 ```yaml
 dependencies:
-  misarblog: ^5.0.2
+  misarblog: ^5.0.3
 ```
 
 Dart SDK `>=3.0.0 <4.0.0`. Pulls in `http ^1.2.0`.
