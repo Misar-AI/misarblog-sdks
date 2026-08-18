@@ -28,12 +28,27 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # A tag pushed with the default GITHUB_TOKEN does NOT start another
+          # workflow — GitHub suppresses those events to stop workflows
+          # retriggering themselves. Every publish-<lang>.yml here triggers on
+          # `push: tags:`, so with GITHUB_TOKEN the tag lands and nothing
+          # publishes, silently and with this job still reporting success.
+          # RELEASE_TOKEN (a PAT with `contents: write`) is what makes the
+          # chain actually fire.
+          token: ${{ secrets.RELEASE_TOKEN || github.token }}
 
       - name: Tag changed SDKs
         env:
           TARGETS: ${{ vars.SDK_PUBLISH_TARGETS }}
+          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           GATE=",$(echo "${TARGETS:-}" | tr -d '[:space:]'),"
+
+          if [ -z "${RELEASE_TOKEN:-}" ]; then
+            echo "::warning::RELEASE_TOKEN is not set — tags will be created with GITHUB_TOKEN, which cannot trigger publish-<lang>.yml. Nothing will publish; each SDK would need its publish workflow run by hand."
+          else
+            echo "RELEASE_TOKEN present — tags will trigger publish-<lang>.yml."
+          fi
           if [ "$GATE" = ",," ]; then
             echo "::notice::SDK_PUBLISH_TARGETS is unset — DRY RUN, nothing will be tagged or published."
           else
