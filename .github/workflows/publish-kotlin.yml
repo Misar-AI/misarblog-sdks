@@ -30,14 +30,12 @@ jobs:
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
-          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           MISSING=""
           [ -n "${OSSRH_USERNAME:-}" ]  || MISSING="$MISSING OSSRH_USERNAME"
           [ -n "${OSSRH_TOKEN:-}" ]     || MISSING="$MISSING OSSRH_TOKEN"
-          [ -n "${GPG_KEY_ID:-}" ]      || MISSING="$MISSING GPG_KEY_ID"
           [ -n "${GPG_PRIVATE_KEY:-}" ] || MISSING="$MISSING GPG_PRIVATE_KEY"
           [ -n "${GPG_PASSPHRASE:-}" ]  || MISSING="$MISSING GPG_PASSPHRASE"
           if [ -n "$MISSING" ]; then
@@ -68,5 +66,4 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_TOKEN }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}
