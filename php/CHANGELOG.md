@@ -3,6 +3,19 @@
 All notable changes to this SDK are documented here. Versions follow
 [semantic versioning](https://semver.org/).
 
+## 5.0.0 — 2026-08-19
+
+One version across every SDK in every Misar product, replacing the drift between separately-numbered clients.
+
+### Documentation
+
+- Rewritten README: every resource and method is listed with the endpoint it calls, the examples are verified against the API contract, and package links are consistent across all SDKs.
+- Manifest metadata filled in — homepage, repository, issue tracker, documentation and author.
+
+### Fixed
+
+- An error response with an empty body was reported as success. A bare 401, or any response stripped by a proxy, came back as an empty result instead of raising, so callers could not tell "no results" from "not authorised".
+
 ## 1.1.0 — 2026-08-16
 
 ### Added

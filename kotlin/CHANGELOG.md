@@ -3,6 +3,19 @@
 All notable changes to this SDK are documented here. Versions follow
 [semantic versioning](https://semver.org/).
 
+## 5.0.0 — 2026-08-19
+
+One version across every SDK in every Misar product, replacing the drift between separately-numbered clients.
+
+### Changed
+
+- The Maven artifact is `blog.misar:misarblog-kotlin`, previously `blog.misar:misarblog-sdk`. Nothing was ever published under the old id, so no build file in the wild refers to it.
+
+### Documentation
+
+- Rewritten README: every resource and method is listed with the endpoint it calls, the examples are verified against the API contract, and package links are consistent across all SDKs.
+- Manifest metadata filled in — homepage, repository, issue tracker, documentation and author.
+
 ## 1.1.0 — 2026-08-16
 
 ### Added
