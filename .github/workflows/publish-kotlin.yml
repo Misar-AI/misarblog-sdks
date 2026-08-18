@@ -28,8 +28,8 @@ jobs:
       # with an unhelpful 401 when any of these is empty. Fail here instead.
       - name: Require publishing credentials
         env:
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_CENTRAL_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
