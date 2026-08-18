@@ -40,6 +40,12 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# NOTE: flutter is deliberately absent. The product ships ONE pure-Dart
+# package per product (misarblog / misarmail / misarreach) that works from
+# Dart CLI, Dart server and Flutter on all five platforms. The former
+# <product>_flutter packages are discontinued on pub.dev and are no longer
+# built or published from here.
+
 jobs:
   tag:
     runs-on: ubuntu-latest
@@ -62,8 +68,6 @@ jobs:
       csharp_version: ${{ steps.tag.outputs.csharp_version }}
       dart: ${{ steps.tag.outputs.dart }}
       dart_version: ${{ steps.tag.outputs.dart_version }}
-      flutter: ${{ steps.tag.outputs.flutter }}
-      flutter_version: ${{ steps.tag.outputs.flutter_version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -123,7 +127,7 @@ jobs:
                 grep '^version' kotlin/build.gradle.kts 2>/dev/null | grep -oE '"[^"]+"' | tr -d '"' | head -1 || true ;;
               csharp)
                 grep '<Version>' csharp/*.csproj 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true ;;
-              dart|flutter)
+              dart)
                 grep '^version' "${lang}/pubspec.yaml" 2>/dev/null | awk '{print $2}' | head -1 || true ;;
               *)
                 cat "${lang}/VERSION" 2>/dev/null | tr -d '[:space:]' || true ;;
@@ -139,7 +143,7 @@ jobs:
           # is nothing here to derive a version from, so they are tagged by hand
           # and split-standalone.yml takes it from there.
           # c/cpp/cli/solidity are gone — those directories no longer exist.
-          for lang in typescript python rust ruby java kotlin csharp dart flutter; do
+          for lang in typescript python rust ruby java kotlin csharp dart; do
             if echo "$CHANGED" | grep -qE "^${lang}/"; then
               VERSION=$(extract_version "$lang" | tr -d '[:space:]')
               if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
@@ -258,12 +262,3 @@ jobs:
     with:
       version: ${{ needs.tag.outputs.dart_version }}
 
-  publish-flutter:
-    needs: tag
-    if: needs.tag.outputs.flutter == 'true'
-    uses: ./.github/workflows/publish-flutter.yml
-    permissions:
-      contents: read
-    secrets: inherit
-    with:
-      version: ${{ needs.tag.outputs.flutter_version }}
