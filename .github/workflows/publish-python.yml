@@ -30,7 +30,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      # Install the package itself, not just the test tools: pytest imports
+      # the SDK, which imports httpx, and `pip install build pytest` never
+      # brings that in. Without this the tests fail with ModuleNotFoundError
+      # before a single assertion runs.
       - run: pip install build pytest pytest-asyncio
+      - run: pip install .
       - run: pytest
         working-directory: python
       - run: python -m build
