@@ -75,9 +75,24 @@ jobs:
           git config user.email "ci@misar.io"
           git config user.name "Misar CI"
 
-          for lang in typescript python rust ruby java kotlin csharp dart flutter go php swift c cpp cli solidity; do
+          # go, php and swift are deliberately absent: none of them carries a
+          # version manifest, because for all three the git tag IS the release
+          # (proxy.golang.org, Packagist and SwiftPM each read the tag). There
+          # is nothing here to derive a version from, so they are tagged by hand.
+          # c/cpp/cli/solidity are gone — those directories no longer exist.
+          for lang in typescript python rust ruby java kotlin csharp dart flutter; do
             if echo "$CHANGED" | grep -qE "^${lang}/"; then
               VERSION=$(extract_version $lang)
+              # extract_version returns EMPTY on a miss, not the "0.1.0" its
+              # `|| echo` suggests: `||` tests the pipeline's status and the
+              # trailing tr/grep/head exits 0 even on empty input. Unguarded
+              # that produced tags literally named "<lang>/v", which then match
+              # publish-<lang>.yml's `*/v*` trigger while failing its regex.
+              if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+                echo "::warning::${lang}: no usable version (got '${VERSION}') — not tagging."
+                echo "- \`${lang}\` skipped: no usable version" >> "$GITHUB_STEP_SUMMARY"
+                continue
+              fi
               TAG="${lang}/v${VERSION}"
               if git tag | grep -qx "$TAG"; then
                 echo "⏭  Tag $TAG already exists, skipping."
