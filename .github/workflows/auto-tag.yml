@@ -137,13 +137,12 @@ jobs:
           git config user.email "ci@misar.io"
           git config user.name "Misar CI"
 
-          # go, php and swift are deliberately absent: none of them carries a
-          # version manifest, because for all three the git tag IS the release
-          # (proxy.golang.org, Packagist and SwiftPM each read the tag). There
-          # is nothing here to derive a version from, so they are tagged by hand
-          # and split-standalone.yml takes it from there.
+          # go, php and swift carry a VERSION file rather than a package
+          # manifest: for all three the git tag IS the release, so there is no
+          # manifest to read, but a release still needs a version to tag with.
+          # extract_version's default branch reads <lang>/VERSION.
           # c/cpp/cli/solidity are gone — those directories no longer exist.
-          for lang in typescript python rust ruby java kotlin csharp dart; do
+          for lang in typescript python rust ruby java kotlin csharp dart go php swift; do
             if echo "$CHANGED" | grep -qE "^${lang}/"; then
               VERSION=$(extract_version "$lang" | tr -d '[:space:]')
               if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
@@ -262,3 +261,39 @@ jobs:
     with:
       version: ${{ needs.tag.outputs.dart_version }}
 
+  # go, php and swift reach their registries through a tag rather than a publish
+  # command, but they still need a job here: a tag pushed with GITHUB_TOKEN
+  # raises no workflow-triggering event, so `push: tags:` on those workflows
+  # never fires for a tag this workflow created.
+
+  publish-go:
+    needs: tag
+    if: needs.tag.outputs.go == 'true'
+    uses: ./.github/workflows/publish-go.yml
+    permissions:
+      contents: read
+    secrets: inherit
+    with:
+      version: ${{ needs.tag.outputs.go_version }}
+
+  split-php:
+    needs: tag
+    if: needs.tag.outputs.php == 'true'
+    uses: ./.github/workflows/split-standalone.yml
+    permissions:
+      contents: read
+    secrets: inherit
+    with:
+      language: php
+      version: ${{ needs.tag.outputs.php_version }}
+
+  split-swift:
+    needs: tag
+    if: needs.tag.outputs.swift == 'true'
+    uses: ./.github/workflows/split-standalone.yml
+    permissions:
+      contents: read
+    secrets: inherit
+    with:
+      language: swift
+      version: ${{ needs.tag.outputs.swift_version }}

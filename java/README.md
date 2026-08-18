@@ -21,20 +21,20 @@ in full.
 <dependency>
     <groupId>blog.misar</groupId>
     <artifactId>misarblog</artifactId>
-    <version>5.0.0</version>
+    <version>5.0.1</version>
 </dependency>
 ```
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("blog.misar:misarblog:5.0.0")
+implementation("blog.misar:misarblog:5.0.1")
 ```
 
 ### Gradle (Groovy)
 
 ```groovy
-implementation 'blog.misar:misarblog:5.0.0'
+implementation 'blog.misar:misarblog:5.0.1'
 ```
 
 Java 17+. Pulls in `com.fasterxml.jackson.core:jackson-databind`.

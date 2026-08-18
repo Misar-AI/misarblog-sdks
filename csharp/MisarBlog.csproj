@@ -10,7 +10,7 @@
 
     <!-- NuGet metadata -->
     <PackageId>MisarBlog</PackageId>
-    <Version>5.0.0</Version>
+    <Version>5.0.1</Version>
     <Authors>Misar AI</Authors>
     <Company>Misar AI Technology Pvt Ltd</Company>
     <Description>C# client for misar.blog, a hosted blogging platform: publish and schedule Markdown articles, manage drafts and series, read comments, reactions, follows and analytics, generate SEO titles, completions and AI cover images, and search. .NET 8 async/await; retry with back-off, typed plan-limit exceptions, iframe embed URLs.</Description>

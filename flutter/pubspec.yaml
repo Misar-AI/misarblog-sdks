@@ -1,6 +1,6 @@
 name: misarblog_flutter
 description: Official Flutter SDK for Misar.Blog — secure key storage, retry, full dev-API coverage, plus the embed widget for iOS, Android, macOS, Web.
-version: 5.0.0
+version: 5.0.1
 homepage: https://www.misar.blog/docs/sdks/flutter
 repository: https://github.com/Misar-AI/misarblog-sdks
 
