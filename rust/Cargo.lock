@@ -654,7 +654,7 @@ dependencies = [
 
 [[package]]
 name = "misarblog"
-version = "5.0.1"
+version = "5.0.2"
 dependencies = [
  "reqwest",
  "serde",

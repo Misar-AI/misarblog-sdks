@@ -68,6 +68,15 @@ jobs:
       csharp_version: ${{ steps.tag.outputs.csharp_version }}
       dart: ${{ steps.tag.outputs.dart }}
       dart_version: ${{ steps.tag.outputs.dart_version }}
+      # A step writing go=true to $GITHUB_OUTPUT is not enough: a job only
+      # exposes what it names here, so without these three the caller jobs
+      # read an empty string and skip — which is exactly what happened.
+      go: ${{ steps.tag.outputs.go }}
+      go_version: ${{ steps.tag.outputs.go_version }}
+      php: ${{ steps.tag.outputs.php }}
+      php_version: ${{ steps.tag.outputs.php_version }}
+      swift: ${{ steps.tag.outputs.swift }}
+      swift_version: ${{ steps.tag.outputs.swift_version }}
     steps:
       - uses: actions/checkout@v4
         with:

@@ -3,6 +3,14 @@
 All notable changes to this SDK are documented here. Versions follow
 [semantic versioning](https://semver.org/).
 
+## 5.0.2 — 2026-08-19
+
+Republished so that every SDK, including the tag-versioned ones, ships through the same automated release pipeline. No API changes.
+
+### Changed
+
+- The module path gained its `/v5` suffix, which Go requires at v2 and above: `go get github.com/Misar-AI/misarblog-sdks/go/v5`.
+
 ## 5.0.1 — 2026-08-19
 
 Republished so that every SDK, including the tag-versioned ones, ships through the same automated release pipeline. No API changes.
