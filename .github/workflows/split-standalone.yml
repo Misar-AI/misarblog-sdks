@@ -91,3 +91,23 @@ jobs:
           git push -q origin main
           git push -q origin "v${VERSION}"
           echo "::notice::${TARGET} now at v${VERSION}"
+
+      # Only now that the tag exists is it worth asking Packagist to look. It
+      # derives versions from tags, so a re-crawl requested while the split was
+      # still running would just re-read the previous release. This used to live
+      # in publish-php.yml, which fired on the same tag in parallel.
+      - name: Ask Packagist to re-crawl
+        if: steps.target.outputs.lang == 'php'
+        env:
+          PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
+          PACKAGIST_API_TOKEN: ${{ secrets.PACKAGIST_API_TOKEN }}
+          TARGET: ${{ steps.target.outputs.target }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PACKAGIST_API_TOKEN:-}" ]; then
+            echo "::notice::PACKAGIST_API_TOKEN unset — Packagist will pick the tag up on its own schedule."
+            exit 0
+          fi
+          curl -sSf -XPOST -H 'content-type:application/json' \
+            "https://packagist.org/api/update-package?username=${PACKAGIST_USERNAME}&apiToken=${PACKAGIST_API_TOKEN}" \
+            -d "{\"repository\":{\"url\":\"https://github.com/${GITHUB_REPOSITORY_OWNER}/${TARGET}\"}}"

@@ -13,7 +13,11 @@ on:
 # Consumers add: .package(url: "https://github.com/Misar-AI/misarblog-swift.git", from: "1.0.0")
 jobs:
   validate:
-    runs-on: macos-14
+    runs-on: ubuntu-latest
+    # Linux on purpose: URLSession's async data(for:)/bytes(for:) do not exist in
+    # swift-corelibs-foundation, so a macOS build passes while the package is
+    # unusable there. That gap reached main once already.
+    container: swift:5.10
     steps:
       - uses: actions/checkout@v4
       - run: swift build -c release
