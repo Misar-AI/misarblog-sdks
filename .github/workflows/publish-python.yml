@@ -53,4 +53,9 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: python/dist/
-          # password: ${{ secrets.PYPI_API_TOKEN }}
+          # Trusted publishing is the better mechanism, but it is not configured
+          # on PyPI's side: the OIDC exchange fails with "Trusted publishing
+          # exchange failure" before any upload is attempted. PYPI_API_TOKEN is
+          # configured and was going unused. The action prefers OIDC whenever a
+          # trusted publisher exists, so setting one up later supersedes this.
+          password: ${{ secrets.PYPI_API_TOKEN }}
