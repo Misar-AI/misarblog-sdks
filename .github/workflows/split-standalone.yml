@@ -6,8 +6,8 @@ name: Split PHP/Swift to standalone repos
 #
 # For Swift the tag IS the release: SwiftPM resolves versions from git tags in
 # the repository it was pointed at, so the plain `vX.Y.Z` tag pushed here is what
-# consumers get. For PHP, Packagist reads tags the same way and publish-php.yml
-# pokes its update API afterwards.
+# consumers get. For PHP, Packagist reads tags the same way — but only for a
+# package it already knows about, which is what the `packagist` job below fixes.
 
 on:
   push:
@@ -25,39 +25,67 @@ on:
         type: string
 
 jobs:
-  split:
+  # Resolving is its own job so that both the split and the Packagist
+  # registration can key off it. Note SDK_LANG rather than LANG: exporting a
+  # variable named LANG to later steps overrides the process locale.
+  resolve:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      lang: ${{ steps.target.outputs.lang }}
+      version: ${{ steps.target.outputs.version }}
+      target: ${{ steps.target.outputs.target }}
+    steps:
+      - name: Resolve language and version
+        id: target
+        env:
+          INPUT_LANG: ${{ inputs.language }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          SDK_LANG="${INPUT_LANG:-}"
+          VERSION="${INPUT_VERSION:-}"
+          if [ -z "$SDK_LANG" ]; then
+            # refs/tags/php/v1.2.3 -> php, 1.2.3
+            REF="${GITHUB_REF#refs/tags/}"
+            SDK_LANG="${REF%%/*}"
+            VERSION="${REF##*/v}"
+          fi
+          case "$SDK_LANG" in
+            php|swift) ;;
+            *) echo "::error::unsupported language '$SDK_LANG'"; exit 1 ;;
+          esac
+          if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+            echo "::error::unusable version '$VERSION' for ${SDK_LANG} — expected X.Y.Z."
+            exit 1
+          fi
+          # misarblog-sdks -> misarblog-php / misarblog-swift
+          REPO="${GITHUB_REPOSITORY##*/}"
+          echo "lang=$SDK_LANG"              >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION"            >> "$GITHUB_OUTPUT"
+          echo "target=${REPO%-sdks}-$SDK_LANG" >> "$GITHUB_OUTPUT"
+
+  split:
+    needs: resolve
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
-      - name: Resolve language and version
-        id: target
-        run: |
-          if [ -n "${{ inputs.language }}" ]; then
-            LANG="${{ inputs.language }}"
-            VERSION="${{ inputs.version }}"
-          else
-            # refs/tags/php/v1.2.3 -> php, 1.2.3
-            LANG="${GITHUB_REF#refs/tags/}"; LANG="${LANG%%/*}"
-            VERSION="${GITHUB_REF##*/v}"
-          fi
-          case "$LANG" in
-            php|swift) ;;
-            *) echo "::error::unsupported language '$LANG'"; exit 1 ;;
-          esac
-          echo "lang=$LANG"       >> "$GITHUB_OUTPUT"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "target=${GITHUB_REPOSITORY##*/}" | sed "s/-sdks/-$LANG/" >> "$GITHUB_OUTPUT"
-
       - name: Push the subdirectory to its standalone repository
         env:
-          TOKEN: ${{ secrets.SPLIT_TOKEN || secrets.RELEASE_TOKEN || secrets.GH_SYNC_TOKEN }}
-          LANG: ${{ steps.target.outputs.lang }}
-          VERSION: ${{ steps.target.outputs.version }}
-          TARGET: ${{ steps.target.outputs.target }}
+          # Cross-repository pushes are the one thing GITHUB_TOKEN genuinely
+          # cannot do — it is scoped to this repository — so this step really
+          # does need a PAT (or a GitHub App token) and fails loudly without one.
+          TOKEN: ${{ secrets.SPLIT_TOKEN }}
+          SDK_LANG: ${{ needs.resolve.outputs.lang }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          TARGET: ${{ needs.resolve.outputs.target }}
         run: |
-          if [ -z "$TOKEN" ]; then
-            echo "::error::no push token available (set SPLIT_TOKEN)"; exit 1
+          if [ -z "${TOKEN:-}" ]; then
+            echo "::error::Cannot mirror ${SDK_LANG}/ to ${TARGET}: repository secret SPLIT_TOKEN is not set. It needs a PAT with contents:write on Misar-AI/${TARGET}; the default GITHUB_TOKEN cannot push to another repository."
+            exit 1
           fi
           git clone --quiet \
             "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY_OWNER}/${TARGET}.git" \
@@ -66,7 +94,7 @@ jobs:
           # --delete so a file removed upstream is removed here too; the .git
           # directory is preserved because rsync targets the worktree only.
           rsync -a --delete --exclude .git --exclude vendor --exclude .build \
-            "${LANG}/" /tmp/standalone/
+            "${SDK_LANG}/" /tmp/standalone/
 
           cd /tmp/standalone
           git config user.email "ci@misar.io"
@@ -76,7 +104,7 @@ jobs:
             echo "::notice::no content change; tagging the existing HEAD"
           else
             git commit -q \
-              -m "chore: sync ${LANG} SDK v${VERSION} from the monorepo" \
+              -m "chore: sync ${SDK_LANG} SDK v${VERSION} from the monorepo" \
               -m "Generated by split-standalone.yml. The monorepo is the source of truth."
           fi
 
@@ -97,17 +125,40 @@ jobs:
       # still running would just re-read the previous release. This used to live
       # in publish-php.yml, which fired on the same tag in parallel.
       - name: Ask Packagist to re-crawl
-        if: steps.target.outputs.lang == 'php'
+        if: needs.resolve.outputs.lang == 'php'
         env:
           PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
           PACKAGIST_API_TOKEN: ${{ secrets.PACKAGIST_API_TOKEN }}
-          TARGET: ${{ steps.target.outputs.target }}
+          TARGET: ${{ needs.resolve.outputs.target }}
         run: |
           set -euo pipefail
-          if [ -z "${PACKAGIST_API_TOKEN:-}" ]; then
-            echo "::notice::PACKAGIST_API_TOKEN unset — Packagist will pick the tag up on its own schedule."
-            exit 0
+          # This used to `exit 0` with a notice when the token was missing, on the
+          # theory that Packagist would get there eventually. It reported a green
+          # release that had published nothing, which is the failure mode this
+          # whole pipeline was rebuilt to stop hiding.
+          MISSING=""
+          [ -n "${PACKAGIST_USERNAME:-}" ]  || MISSING="$MISSING PACKAGIST_USERNAME"
+          [ -n "${PACKAGIST_API_TOKEN:-}" ] || MISSING="$MISSING PACKAGIST_API_TOKEN"
+          if [ -n "$MISSING" ]; then
+            for s in $MISSING; do
+              echo "::error::Cannot ask Packagist to re-crawl ${TARGET}: repository secret $s is not set."
+            done
+            exit 1
           fi
           curl -sSf -XPOST -H 'content-type:application/json' \
             "https://packagist.org/api/update-package?username=${PACKAGIST_USERNAME}&apiToken=${PACKAGIST_API_TOKEN}" \
             -d "{\"repository\":{\"url\":\"https://github.com/${GITHUB_REPOSITORY_OWNER}/${TARGET}\"}}"
+
+  # Submitting the package is a precondition for the re-crawl above meaning
+  # anything, and it is deliberately NOT downstream of `split`: registration is
+  # idempotent and reads the standalone repo directly, so it should still happen
+  # on a run where the mirror push failed (e.g. SPLIT_TOKEN missing).
+  packagist:
+    needs: resolve
+    if: needs.resolve.outputs.lang == 'php'
+    uses: ./.github/workflows/packagist-register.yml
+    permissions:
+      contents: read
+    secrets: inherit
+    with:
+      repository_url: https://github.com/${{ github.repository_owner }}/${{ needs.resolve.outputs.target }}
