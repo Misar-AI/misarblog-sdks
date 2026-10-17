@@ -1,7 +1,5 @@
-import com.vanniktech.maven.publish.SonatypeHost
-
 plugins {
-    kotlin("jvm") version "1.9.25"
+    kotlin("jvm") version "2.2.21"
     `java-library`
     // NOT `maven-publish` + `signing`. Those upload by PUTting each file to the
     // repository URL, but https://central.sonatype.com/api/v1/publisher/upload is
@@ -44,7 +42,7 @@ tasks.test {
 // Gradle build two artifacts for the same classifier.
 
 mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+    publishToMavenCentral(automaticRelease = true)
     signAllPublications()
     // Was "misarblog-sdk", which matched neither sibling. Nothing was ever
     // published under it, so there is no one to break by making the three
