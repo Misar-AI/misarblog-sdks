@@ -21,20 +21,20 @@ in full.
 <dependency>
     <groupId>blog.misar</groupId>
     <artifactId>misarblog</artifactId>
-    <version>5.0.3</version>
+    <version>5.0.4</version>
 </dependency>
 ```
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("blog.misar:misarblog:5.0.3")
+implementation("blog.misar:misarblog:5.0.4")
 ```
 
 ### Gradle (Groovy)
 
 ```groovy
-implementation 'blog.misar:misarblog:5.0.3'
+implementation 'blog.misar:misarblog:5.0.4'
 ```
 
 Java 17+. Pulls in `com.fasterxml.jackson.core:jackson-databind`.
@@ -285,8 +285,8 @@ request for you; the Go and Python clients do.
 ### Embed a public article
 
 ```java
-String url = MisarBlog.embedUrl("gulshan", "hello-misar", "dark");
-// https://misar.blog/gulshan/hello-misar/embed?theme=dark
+String url = MisarBlog.embedUrl("jane", "hello-misar", "dark");
+// https://misar.blog/jane/hello-misar/embed?theme=dark
 ```
 
 Pass `null` for `slug` to embed the whole profile, and `"auto"` or `null` for
@@ -335,4 +335,4 @@ Two differences from the TypeScript, Python, Go and Dart clients worth knowing:
 - Source — https://github.com/Misar-AI/misarblog-sdks
 - Maven Central — https://central.sonatype.com/artifact/blog.misar/misarblog
 
-MIT © [Misar AI](https://misar.io)
+MIT © [Misar.AI](https://misar.io)

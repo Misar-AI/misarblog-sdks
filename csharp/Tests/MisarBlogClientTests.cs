@@ -88,9 +88,9 @@ public sealed class MisarBlogClientTests
     [Fact]
     public async Task ProfileGet_ReturnsTheAccount()
     {
-        var result = await ClientWith(Ok("{\"id\":\"u1\",\"username\":\"gulshan\"}")).Profile_GetAsync();
+        var result = await ClientWith(Ok("{\"id\":\"u1\",\"username\":\"jane\"}")).Profile_GetAsync();
 
-        Assert.Equal("gulshan", result.GetProperty("username").GetString());
+        Assert.Equal("jane", result.GetProperty("username").GetString());
     }
 
     [Fact]

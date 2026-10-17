@@ -225,11 +225,11 @@ console.log(summary.views, summary.revenue_cents, summary.active_subscribers);
 ```ts
 import { embed, embedUrl } from "@misarblog/sdk";
 
-const url = embedUrl({ username: "gulshan", slug: "hello-misar", theme: "dark" });
+const url = embedUrl({ username: "jane", slug: "hello-misar", theme: "dark" });
 
 // In the browser — appends a lazy iframe and hands back a destructor.
 const { destroy } = embed(document.querySelector("#slot")!, {
-  username: "gulshan",
+  username: "jane",
   slug: "hello-misar",
   height: "800px",
 });
@@ -279,4 +279,4 @@ narrowest-first.
 - Source — https://github.com/Misar-AI/misarblog-sdks
 - npm — https://www.npmjs.com/package/@misarblog/sdk
 
-MIT © [Misar AI](https://misar.io)
+MIT © [Misar.AI](https://misar.io)

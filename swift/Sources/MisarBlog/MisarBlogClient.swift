@@ -10,7 +10,7 @@
 //  Docs:       https://docs.misar.io/blog
 //  Source:     https://github.com/Misar-AI/misarblog-sdks
 //  Issues:     https://github.com/Misar-AI/misarblog-sdks/issues
-//  Author:     Misar AI <hello@misar.io> — https://misar.io
+//  Author:     Misar.AI <hello@misar.io> — https://misar.io
 //  Licence:    MIT
 //
 

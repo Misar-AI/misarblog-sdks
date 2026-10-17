@@ -256,7 +256,7 @@ print(uploaded["url"])
 ```python
 from misarblog import embed_url
 
-print(embed_url("gulshan", slug="hello-misar", theme="dark"))
+print(embed_url("jane", slug="hello-misar", theme="dark"))
 ```
 
 ---
@@ -300,4 +300,4 @@ except MisarBlogError as err:
 - Source — https://github.com/Misar-AI/misarblog-sdks
 - PyPI — https://pypi.org/project/misarblog/
 
-MIT © [Misar AI](https://misar.io)
+MIT © [Misar.AI](https://misar.io)

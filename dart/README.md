@@ -32,7 +32,7 @@ flutter pub add misarblog
 
 ```yaml
 dependencies:
-  misarblog: ^5.0.3
+  misarblog: ^5.0.4
 ```
 
 Dart SDK `>=3.0.0 <4.0.0`. Pulls in `http ^1.2.0`.
@@ -259,8 +259,8 @@ multipart request for you; the Go and Python clients do.
 ### Embed a public article
 
 ```dart
-print(embedUrl('gulshan', slug: 'hello-misar', theme: 'dark'));
-// https://misar.blog/gulshan/hello-misar/embed?theme=dark
+print(embedUrl('jane', slug: 'hello-misar', theme: 'dark'));
+// https://misar.blog/jane/hello-misar/embed?theme=dark
 ```
 
 Omit `slug` to embed the whole profile.
@@ -306,4 +306,4 @@ named fields in this SDK — read them off `e.body`.
 - Source — https://github.com/Misar-AI/misarblog-sdks
 - pub.dev — https://pub.dev/packages/misarblog
 
-MIT © [Misar AI](https://misar.io)
+MIT © [Misar.AI](https://misar.io)

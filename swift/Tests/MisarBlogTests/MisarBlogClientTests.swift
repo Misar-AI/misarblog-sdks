@@ -119,11 +119,11 @@ final class MisarBlogClientTests: XCTestCase {
     }
 
     func testProfileSendsTheBearerToken() async throws {
-        stub("/blog/v1/me", #"{"id":"u1","username":"gulshan"}"#)
+        stub("/blog/v1/me", #"{"id":"u1","username":"jane"}"#)
 
         let result = try await client().profile.get()
 
-        XCTAssertEqual(result["username"] as? String, "gulshan")
+        XCTAssertEqual(result["username"] as? String, "jane")
     }
 
     func testPlanReportsTheSubscriptionBehindTheKey() async throws {
@@ -209,13 +209,13 @@ final class MisarBlogClientTests: XCTestCase {
         // Unauthenticated and independent of the API client.
         let embed = MisarBlog()
 
-        XCTAssertEqual(embed.embedURL(username: "gulshan", theme: "dark").absoluteString,
-                       "https://misar.blog/gulshan/embed?theme=dark")
-        XCTAssertEqual(embed.embedURL(username: "gulshan", slug: "hello", theme: "light").absoluteString,
-                       "https://misar.blog/gulshan/hello/embed?theme=light")
+        XCTAssertEqual(embed.embedURL(username: "jane", theme: "dark").absoluteString,
+                       "https://misar.blog/jane/embed?theme=dark")
+        XCTAssertEqual(embed.embedURL(username: "jane", slug: "hello", theme: "light").absoluteString,
+                       "https://misar.blog/jane/hello/embed?theme=light")
         // "auto" is the default and deliberately omits the parameter, letting the
         // embed follow the host page rather than pinning a theme.
-        XCTAssertEqual(embed.embedURL(username: "gulshan").absoluteString,
-                       "https://misar.blog/gulshan/embed")
+        XCTAssertEqual(embed.embedURL(username: "jane").absoluteString,
+                       "https://misar.blog/jane/embed")
     }
 }

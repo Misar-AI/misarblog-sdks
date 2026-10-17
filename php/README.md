@@ -269,8 +269,8 @@ multipart request for you; the Go and Python clients do.
 ```php
 use MisarBlog\Embed;
 
-echo Embed::url('gulshan', 'hello-misar', 'dark'), "\n";
-// https://misar.blog/gulshan/hello-misar/embed?theme=dark
+echo Embed::url('jane', 'hello-misar', 'dark'), "\n";
+// https://misar.blog/jane/hello-misar/embed?theme=dark
 ```
 
 Pass `null` for `$slug` to embed the whole profile; `'auto'` adds no query
@@ -319,4 +319,4 @@ try {
 - Source — https://github.com/Misar-AI/misarblog-sdks
 - Packagist — https://packagist.org/packages/misarai/misarblog-php
 
-MIT © [Misar AI](https://misar.io)
+MIT © [Misar.AI](https://misar.io)

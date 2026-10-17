@@ -30,11 +30,11 @@ def test_get_profile():
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.url.path == "/blog/v1/me"
         assert request.headers["Authorization"] == "Bearer mbk_test"
-        return httpx.Response(200, json={"id": "u1", "username": "gulshan"})
+        return httpx.Response(200, json={"id": "u1", "username": "jane"})
 
     with make_client(handler) as blog:
         me = blog.me.get()
-        assert me["username"] == "gulshan"
+        assert me["username"] == "jane"
 
 
 def test_list_articles_query_params():

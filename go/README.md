@@ -258,8 +258,8 @@ fmt.Println(uploaded["url"])
 ### Embed a public article
 
 ```go
-url := misarblog.EmbedURL("gulshan", "hello-misar", "dark")
-// https://misar.blog/gulshan/hello-misar/embed?theme=dark
+url := misarblog.EmbedURL("jane", "hello-misar", "dark")
+// https://misar.blog/jane/hello-misar/embed?theme=dark
 ```
 
 ---
@@ -308,4 +308,4 @@ so check for the one you care about rather than relying on an ordering.
 - Source — https://github.com/Misar-AI/misarblog-sdks
 - pkg.go.dev — https://pkg.go.dev/github.com/Misar-AI/misarblog-sdks/go/v5
 
-MIT © [Misar AI](https://misar.io)
+MIT © [Misar.AI](https://misar.io)

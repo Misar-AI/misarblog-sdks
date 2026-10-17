@@ -21,7 +21,7 @@ In `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Misar-AI/misarblog-swift.git", from: "5.0.3")
+    .package(url: "https://github.com/Misar-AI/misarblog-swift.git", from: "5.0.4")
 ]
 ```
 
@@ -279,9 +279,9 @@ multipart request for you; the Go and Python clients do.
 
 ```swift
 let embeds = MisarBlog()
-let url = embeds.embedURL(username: "gulshan", slug: "hello-misar", theme: "dark")
+let url = embeds.embedURL(username: "jane", slug: "hello-misar", theme: "dark")
 print(url.absoluteString)
-// https://misar.blog/gulshan/hello-misar/embed?theme=dark
+// https://misar.blog/jane/hello-misar/embed?theme=dark
 ```
 
 `embedURL` returns a `URL`. Omit `slug` to embed the whole profile; `theme`
@@ -331,4 +331,4 @@ unwrapping the case.
 - Source — https://github.com/Misar-AI/misarblog-sdks
 - Swift Package Index — https://github.com/Misar-AI/misarblog-swift
 
-MIT © [Misar AI](https://misar.io)
+MIT © [Misar.AI](https://misar.io)

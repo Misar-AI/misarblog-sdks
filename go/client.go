@@ -40,7 +40,7 @@
 // Source https://github.com/Misar-AI/misarblog-sdks — the mirror keeps each
 // language in a subdirectory, so this module lives at the /go suffix and its
 // release tags are go/vX.Y.Z. Issues
-// https://github.com/Misar-AI/misarblog-sdks/issues. MIT licensed by Misar AI
+// https://github.com/Misar-AI/misarblog-sdks/issues. MIT licensed by Misar.AI
 // (https://misar.io).
 package misarblog
 

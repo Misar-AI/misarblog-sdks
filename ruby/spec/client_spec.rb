@@ -16,7 +16,7 @@ RSpec.describe MisarBlog::Client do
   it "sends the mbk_ bearer token" do
     stub = stub_request(:get, "#{base_url}/me")
            .with(headers: { "Authorization" => "Bearer mbk_test" })
-           .to_return(status: 200, body: { "id" => "u1", "username" => "gulshan" }.to_json)
+           .to_return(status: 200, body: { "id" => "u1", "username" => "jane" }.to_json)
     client.account.profile
     expect(stub).to have_been_requested
   end

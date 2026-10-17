@@ -30,7 +30,7 @@ function client(fetchImpl: typeof globalThis.fetch, maxRetries = 3) {
 
 describe("MisarBlog transport", () => {
   it("sends the API key as a Bearer token against the gateway base URL", async () => {
-    const { impl, calls } = stubFetch({ status: 200, body: { id: "u1", username: "gulshan" } });
+    const { impl, calls } = stubFetch({ status: 200, body: { id: "u1", username: "jane" } });
     await client(impl).profiles.me();
 
     expect(calls[0].url).toBe("https://api.misar.io/blog/v1/me");

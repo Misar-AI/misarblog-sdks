@@ -239,8 +239,8 @@ request for you; the Go and Python clients do.
 ### Embed a public article
 
 ```ruby
-puts MisarBlog.embed_url(username: "gulshan", slug: "hello-misar", theme: "dark")
-# https://misar.blog/gulshan/hello-misar/embed?theme=dark
+puts MisarBlog.embed_url(username: "jane", slug: "hello-misar", theme: "dark")
+# https://misar.blog/jane/hello-misar/embed?theme=dark
 ```
 
 Omit `slug:` to embed the whole profile; `theme:` defaults to `"auto"`, which
@@ -288,4 +288,4 @@ wrong class, file it at <https://github.com/Misar-AI/misarblog-sdks/issues>.
 - Source — https://github.com/Misar-AI/misarblog-sdks
 - RubyGems — https://rubygems.org/gems/misarblog
 
-MIT © [Misar AI](https://misar.io)
+MIT © [Misar.AI](https://misar.io)

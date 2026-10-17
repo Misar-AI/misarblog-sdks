@@ -28,7 +28,7 @@ func TestGetProfile(t *testing.T) {
 		if got := r.Header.Get("Authorization"); got != "Bearer mbk_test" {
 			t.Errorf("bad auth header: %s", got)
 		}
-		json.NewEncoder(w).Encode(map[string]any{"id": "u1", "username": "gulshan"})
+		json.NewEncoder(w).Encode(map[string]any{"id": "u1", "username": "jane"})
 	}))
 	defer srv.Close()
 
@@ -36,8 +36,8 @@ func TestGetProfile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if me.Username != "gulshan" {
-		t.Errorf("expected username gulshan, got %s", me.Username)
+	if me.Username != "jane" {
+		t.Errorf("expected username jane, got %s", me.Username)
 	}
 }
 

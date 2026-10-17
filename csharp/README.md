@@ -31,7 +31,7 @@ Install-Package MisarBlog
 ### PackageReference
 
 ```xml
-<PackageReference Include="MisarBlog" Version="5.0.3" />
+<PackageReference Include="MisarBlog" Version="5.0.4" />
 ```
 
 Targets .NET 8. No third-party dependencies.
@@ -273,8 +273,8 @@ multipart request for you; the Go and Python clients do.
 ### Embed a public article
 
 ```csharp
-string url = Embed.Url("gulshan", "hello-misar", theme: "dark");
-// https://misar.blog/gulshan/hello-misar/embed?theme=dark
+string url = Embed.Url("jane", "hello-misar", theme: "dark");
+// https://misar.blog/jane/hello-misar/embed?theme=dark
 ```
 
 Pass `null` for `slug` to embed the whole profile.
@@ -324,4 +324,4 @@ catch (MisarBlogException e)
 - Source — https://github.com/Misar-AI/misarblog-sdks
 - NuGet — https://www.nuget.org/packages/MisarBlog
 
-MIT © [Misar AI](https://misar.io)
+MIT © [Misar.AI](https://misar.io)

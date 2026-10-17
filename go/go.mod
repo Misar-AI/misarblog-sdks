@@ -3,4 +3,4 @@
 // this module lives at the /go suffix and its release tags are `go/vX.Y.Z`.
 module github.com/Misar-AI/misarblog-sdks/go/v5
 
-go 1.22
+go 1.27.1

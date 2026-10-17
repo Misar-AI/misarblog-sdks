@@ -3,7 +3,7 @@ description: >-
   Dart client for misar.blog, a hosted blogging platform: publish and schedule
   Markdown articles, manage drafts, series, comments, reactions, analytics and
   AI titles and covers.
-version: 5.0.3
+version: 5.0.4
 homepage: https://www.misar.blog
 repository: https://github.com/Misar-AI/misarblog-sdks
 documentation: https://docs.misar.io/blog
@@ -17,11 +17,11 @@ topics:
   - api-client
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.13.4 <4.0.0"
 
 dependencies:
-  http: ^1.2.0
+  http: ^1.6.0
 
 dev_dependencies:
-  test: ^1.25.0
+  test: ^1.32.0
   lints: ^3.0.0

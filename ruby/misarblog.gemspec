@@ -1,7 +1,7 @@
 Gem::Specification.new do |spec|
   spec.name          = "misarblog"
-  spec.version       = "5.0.3"
-  spec.authors       = ["Misar AI"]
+  spec.version       = "5.0.4"
+  spec.authors       = ["Misar.AI"]
   spec.email         = ["hello@misar.io"]
   spec.summary       = "Ruby client for misar.blog, a hosted blogging platform: publish and " \
                        "schedule Markdown articles, manage drafts and series, read comments, " \

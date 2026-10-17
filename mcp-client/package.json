@@ -1,0 +1,56 @@
+{
+  "name": "@misarblog/mcp-client-legacy",
+  "version": "1.1.0",
+  "description": "DO NOT PUBLISH \u2014 stale local copy of the Misar.Blog MCP client. The real package is @misarblog/mcp on npm (2.0.0+), released from github.com/Misar-AI/misarblog-mcp.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "blog",
+    "articles",
+    "publishing",
+    "newsletter",
+    "series",
+    "misarblog",
+    "ai",
+    "claude"
+  ],
+  "author": "Misar.AI <support@misar.io>",
+  "license": "MIT",
+  "homepage": "https://docs.misar.io/blog/mcp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Misar-AI/misarblog-sdks.git",
+    "directory": "mcp-client"
+  },
+  "bugs": {
+    "url": "https://github.com/Misar-AI/misarblog-sdks/issues"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.20.8"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "private": true
+}

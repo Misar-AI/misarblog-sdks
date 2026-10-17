@@ -1,19 +1,19 @@
 name: misarblog_flutter
 description: Official Flutter SDK for Misar.Blog — secure key storage, retry, full dev-API coverage, plus the embed widget for iOS, Android, macOS, Web.
-version: 5.0.3
+version: 5.0.4
 homepage: https://www.misar.blog/docs/sdks/flutter
 repository: https://github.com/Misar-AI/misarblog-sdks
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
-  flutter: ">=3.10.0"
+  sdk: ">=3.13.4 <4.0.0"
+  flutter: ">=3.47.5"
 
 dependencies:
   flutter:
     sdk: flutter
-  http: ^1.2.0
-  flutter_secure_storage: ^9.0.0
-  webview_flutter: ^4.7.0
+  http: ^1.6.0
+  flutter_secure_storage: ^9.2.4
+  webview_flutter: ^4.14.1
   misarblog: ^1.1.0
 
 # `misarblog` is not on pub.dev yet, so version solving fails outright and this
@@ -31,4 +31,4 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^3.0.2

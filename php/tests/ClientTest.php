@@ -98,7 +98,7 @@ class ClientTest extends TestCase
 
     public function testProfileReturnsTheAccount(): void
     {
-        $this->assertSame('gulshan', $this->client()->profile->get()['username']);
+        $this->assertSame('jane', $this->client()->profile->get()['username']);
     }
 
     public function testPlanReportsTheSubscriptionBehindTheKey(): void

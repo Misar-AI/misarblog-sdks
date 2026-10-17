@@ -18,13 +18,13 @@ full.
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-implementation("blog.misar:misarblog-kotlin:5.0.3")
+implementation("blog.misar:misarblog-kotlin:5.0.4")
 ```
 
 ### Gradle (Groovy)
 
 ```groovy
-implementation 'blog.misar:misarblog-kotlin:5.0.3'
+implementation 'blog.misar:misarblog-kotlin:5.0.4'
 ```
 
 ### Maven
@@ -33,7 +33,7 @@ implementation 'blog.misar:misarblog-kotlin:5.0.3'
 <dependency>
     <groupId>blog.misar</groupId>
     <artifactId>misarblog-kotlin</artifactId>
-    <version>5.0.3</version>
+    <version>5.0.4</version>
 </dependency>
 ```
 
@@ -291,8 +291,8 @@ request for you; the Go and Python clients do.
 ### Embed a public article
 
 ```kotlin
-val url = MisarBlog.embedUrl("gulshan", "hello-misar", theme = "dark")
-// https://misar.blog/gulshan/hello-misar/embed?theme=dark
+val url = MisarBlog.embedUrl("jane", "hello-misar", theme = "dark")
+// https://misar.blog/jane/hello-misar/embed?theme=dark
 ```
 
 Omit `slug` to embed the whole profile; `theme` defaults to `"auto"`, which adds
@@ -341,4 +341,4 @@ raw error body ends up in `message`.
 - Source — https://github.com/Misar-AI/misarblog-sdks
 - Maven Central — https://central.sonatype.com/artifact/blog.misar/misarblog-kotlin
 
-MIT © [Misar AI](https://misar.io)
+MIT © [Misar.AI](https://misar.io)

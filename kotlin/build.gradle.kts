@@ -7,28 +7,28 @@ plugins {
     // repository URL, but https://central.sonatype.com/api/v1/publisher/upload is
     // a bundle POST API, not a Maven repo — every PUT 404s and nothing is ever
     // published. This plugin speaks the Central Portal protocol.
-    id("com.vanniktech.maven.publish") version "0.30.0"
+    id("com.vanniktech.maven.publish") version "0.37.0"
 }
 
 // Must match the publication's groupId below and the namespace verified on
 // Central — a mismatch here silently produces artifacts under the wrong
 // coordinates and Central rejects the bundle.
 group = "blog.misar"
-version = "5.0.3"
+version = "5.0.4"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.22.3")
     testImplementation(kotlin("test"))
     // Gradle 9 no longer puts the JUnit Platform launcher on the test runtime
     // classpath implicitly. Without it `gradle test` dies with "Failed to load
     // JUnit Platform" before running a single test.
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
 }
 
 kotlin {
@@ -69,9 +69,9 @@ mavenPublishing {
         }
         developers {
             developer {
-                name.set("Misar AI")
+                name.set("Misar.AI")
                 email.set("hello@misar.io")
-                organization.set("Misar AI Technology Pvt Ltd")
+                organization.set("Misar.AI")
                 organizationUrl.set("https://misar.io")
             }
         }

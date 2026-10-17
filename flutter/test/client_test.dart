@@ -33,10 +33,10 @@ void main() {
       late http.Request captured;
       final mock = MockClient((req) async {
         captured = req;
-        return _json(200, {'id': 'u1', 'username': 'gulshan'});
+        return _json(200, {'id': 'u1', 'username': 'jane'});
       });
       final profile = await _client(mock).account.profile();
-      expect(profile.username, equals('gulshan'));
+      expect(profile.username, equals('jane'));
       expect(captured.headers['Authorization'], equals('Bearer mbk_test'));
       expect(captured.url.toString(), 'https://api.misar.io/blog/v1/me');
     });

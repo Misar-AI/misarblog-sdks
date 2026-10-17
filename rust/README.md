@@ -275,8 +275,8 @@ println!(
 ### Embed a public article
 
 ```rust
-let url = misarblog::embed_url("gulshan", Some("hello-misar"), "dark");
-// https://misar.blog/gulshan/hello-misar/embed?theme=dark
+let url = misarblog::embed_url("jane", Some("hello-misar"), "dark");
+// https://misar.blog/jane/hello-misar/embed?theme=dark
 ```
 
 ---
@@ -322,4 +322,4 @@ at <https://github.com/Misar-AI/misarblog-sdks/issues>.
 - Source — https://github.com/Misar-AI/misarblog-sdks
 - crates.io — https://crates.io/crates/misarblog
 
-MIT © [Misar AI](https://misar.io)
+MIT © [Misar.AI](https://misar.io)

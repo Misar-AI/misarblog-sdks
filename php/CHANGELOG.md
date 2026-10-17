@@ -3,6 +3,10 @@
 All notable changes to this SDK are documented here. Versions follow
 [semantic versioning](https://semver.org/).
 
+## 5.0.4 — 2026-10-16
+
+Package metadata and README name the company exactly as "Misar.AI". No API changes.
+
 ## 5.0.3 — 2026-08-19
 
 Republished so that every SDK, including the tag-versioned ones, ships through the same automated release pipeline. No API changes.

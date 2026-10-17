@@ -45,7 +45,7 @@ switch (true) {
         return;
 
     case $path === '/blog/v1/me':
-        json(200, ['id' => 'u1', 'username' => 'gulshan']);
+        json(200, ['id' => 'u1', 'username' => 'jane']);
         return;
 
     case $path === '/blog/v1/plan':
