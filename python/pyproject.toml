@@ -7,7 +7,7 @@ name = "misarblog"
 version = "5.0.4"
 description = "Sync + async client for misar.blog, a hosted blogging platform: publish and schedule Markdown articles, manage drafts and series, read comments, reactions, follows and analytics, generate SEO titles, completions and AI cover images, and search."
 readme = "README.md"
-requires-python = ">=3.14.7"
+requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [{ name = "Misar.AI", email = "hello@misar.io" }]
 keywords = [
